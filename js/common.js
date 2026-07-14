@@ -74,6 +74,15 @@
     return hslToHex({ h: hue, s: 0.55, l: 0.42 });
   }
 
+  // Color fijo por grupo (A–L), ver css/tokens.css (--grp-a…--grp-l). Se usa en
+  // la Matriz de Enfrentamientos y en las tarjetas de resultado "scoreboard"
+  // para que cada grupo tenga una identidad visual propia, como en las
+  // referencias de diseño (tarjetas de grupo con marco de color).
+  function groupColor(letter) {
+    var l = String(letter || 'a').toLowerCase();
+    return 'var(--grp-' + (/^[a-l]$/.test(l) ? l : 'a') + ')';
+  }
+
   var currentColor = '#1c5cab';
   function applyTeamTheme(hex){
     currentColor = hex || '#1c5cab';
@@ -307,7 +316,7 @@
   App.common = {
     $: $, esc: esc, icon: icon, store: store,
     setTeams: setTeams, setStadiums: setStadiums, setGames: setGames, setGroups: setGroups,
-    teamName: teamName, teamFlagHtml: teamFlagHtml, teamRecord: teamRecord,
+    teamName: teamName, teamFlagHtml: teamFlagHtml, teamRecord: teamRecord, groupColor: groupColor,
     applyTeamTheme: applyTeamTheme, contrastText: contrastText,
     fmtDate: fmtDate, fmtDateLong: fmtDateLong,
     ui: ui, skeletonCards: skeletonCards,

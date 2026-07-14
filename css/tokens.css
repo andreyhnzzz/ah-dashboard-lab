@@ -84,6 +84,25 @@
   --auth-accent-hover:     #5c2fae;
   --auth-accent-contrast:  #ffffff;
   --auth-ring:             rgba(111, 63, 196, 0.3);
+
+  /* --- Color por grupo (A–L) ------------------------------------------------
+   * Inspirado en las referencias de UI adjuntas: tarjetas de resultados con
+   * marco de color propio por grupo, banderas en "chip" y marcador tipo
+   * scoreboard sobre tarjeta oscura. Doce tonos distinguibles entre sí y
+   * legibles como texto blanco sobre ellos (usado en .group-tab, cabeceras de
+   * la matriz y las tarjetas de partido). --- */
+  --grp-a: #22c55e; --grp-b: #ef4444; --grp-c: #f97316; --grp-d: #3b82f6;
+  --grp-e: #eab308; --grp-f: #8b5cf6; --grp-g: #ec4899; --grp-h: #14b8a6;
+  --grp-i: #84cc16; --grp-j: #06b6d4; --grp-k: #f59e0b; --grp-l: #6366f1;
+
+  /* --- Tarjeta "scoreboard" (marcador oscuro) -------------------------------
+   * Tarjetas de partido/resultado en negro real con texto blanco, tal como en
+   * las referencias — independiente del tema claro/oscuro del resto de la UI. */
+  --score-bg:      #131316;
+  --score-bg-2:    #1c1c20;
+  --score-fg:      #ffffff;
+  --score-fg-muted: #9a9aa2;
+  --score-pill-bg: #2b2b31;
 }
 
 /* --- Modo oscuro (preferencia del sistema; los pasos se re-eligen, no se

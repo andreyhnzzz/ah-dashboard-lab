@@ -11,7 +11,9 @@
 }
 .hero-lg__title { margin: 0 0 var(--sp-2); font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 800; letter-spacing: -0.02em; text-transform: uppercase; }
 .hero-lg__sub { margin: 0; color: rgba(255,255,255,0.88); max-width: 60ch; }
-.hero-lg__badge { font-size: 3.4rem; color: #fff; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25)); }
+.hero-lg__badge { flex-shrink: 0; border-radius: var(--radius-md); overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.35); }
+.hero-lg__badge img { width: 96px; height: 96px; object-fit: cover; display: block; }
+@media (max-width: 560px) { .hero-lg__badge img { width: 64px; height: 64px; } }
 
 .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--sp-3); }
 .kpi { background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--sp-4); text-align: center; }
@@ -33,61 +35,70 @@
 /* ---------------------- Tour de Sedes ----------------------------------- */
 .sedes-layout { display: grid; grid-template-columns: minmax(260px, 340px) 1fr; gap: var(--sp-5); align-items: start; }
 .venue-list { display: flex; flex-direction: column; gap: var(--sp-2); max-height: 70vh; overflow: auto; padding-right: 4px; }
-.venue { display: flex; align-items: center; gap: var(--sp-3); text-align: left; background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: var(--sp-3); cursor: pointer; font: inherit; color: inherit; transition: border-color var(--transition), background var(--transition); }
+.venue { display: flex; align-items: center; gap: var(--sp-3); text-align: left; background: var(--score-bg); border: 2px solid transparent; border-radius: var(--radius-sm); padding: var(--sp-3); cursor: pointer; font: inherit; color: var(--score-fg); transition: border-color var(--transition), background var(--transition); }
 .venue:hover { border-color: var(--team-accent); }
-.venue.is-active { background: var(--team-tint); border-color: var(--team-accent); box-shadow: inset 3px 0 0 var(--team-accent); }
-.venue__pin { font-size: 1.1rem; }
-.venue__name { display: block; font-weight: 700; font-size: var(--fs-sm); }
-.venue__city { display: block; font-size: var(--fs-xs); color: var(--text-muted); }
+.venue.is-active { border-color: var(--team-accent); background: var(--score-bg-2); }
+.venue__pin { font-size: 1.1rem; color: var(--team-accent); }
+.venue__name { display: block; font-weight: 700; font-size: var(--fs-sm); text-transform: uppercase; }
+.venue__city { display: block; font-size: var(--fs-xs); color: var(--score-fg-muted); }
 .venue-detail { scroll-margin-top: 90px; }
 .placeholder { text-align: center; }
 .vmatch-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
-.vmatch { display: grid; grid-template-columns: 1fr auto auto; gap: var(--sp-3); align-items: center; padding: var(--sp-2) var(--sp-3); border: 1px solid var(--border); border-radius: var(--radius-sm); }
-.vmatch__teams { font-size: var(--fs-sm); font-weight: 600; }
-.vmatch__vs { color: var(--text-muted); font-weight: 400; }
-.vmatch__meta { font-size: var(--fs-xs); color: var(--text-muted); }
-.vmatch__score { font-weight: 700; font-variant-numeric: tabular-nums; }
+.vmatch { display: grid; grid-template-columns: 1fr auto auto; gap: var(--sp-3); align-items: center; padding: var(--sp-3); background: var(--score-bg); border-radius: var(--radius-sm); color: var(--score-fg); }
+.vmatch__teams { font-size: var(--fs-sm); font-weight: 700; text-transform: uppercase; }
+.vmatch__teams .flag-ico { border-radius: 4px; box-shadow: 0 0 0 1px rgba(255,255,255,0.15); }
+.vmatch__vs { color: var(--score-fg-muted); font-weight: 400; text-transform: none; }
+.vmatch__meta { font-size: var(--fs-xs); color: var(--score-fg-muted); }
+.vmatch__score { font-weight: 800; font-variant-numeric: tabular-nums; background: var(--score-pill-bg); border-radius: 999px; padding: 2px 10px; }
 @media (max-width: 720px) { .sedes-layout { grid-template-columns: 1fr; } .venue-list { max-height: none; } }
 
 /* ---------------------- Agenda Simultánea ------------------------------- */
 .agenda-controls { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); }
 .agenda-controls__center { text-align: center; }
 .agenda-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--sp-4); }
-.acol { display: flex; flex-direction: column; gap: var(--sp-2); background: var(--surface-1); border: 1px solid var(--border); border-top: 3px solid var(--team-accent); border-radius: var(--radius-md); padding: var(--sp-4); }
-.acol__stage { font-size: var(--fs-xs); font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
-.acol__team { display: flex; align-items: center; gap: var(--sp-2); font-weight: 600; }
-.acol__score { font-size: 1.6rem; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; }
+.acol { display: flex; flex-direction: column; gap: var(--sp-2); background: var(--score-bg); border-top: 4px solid var(--team-accent); border-radius: var(--radius-md); padding: var(--sp-4); color: var(--score-fg); }
+.acol__stage { font-size: var(--fs-xs); font-weight: 800; color: var(--score-fg-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.acol__team { display: flex; align-items: center; gap: var(--sp-2); font-weight: 700; text-transform: uppercase; font-size: var(--fs-sm); }
+.acol__team .flag-ico { border-radius: 4px; box-shadow: 0 0 0 1px rgba(255,255,255,0.15); }
+.acol__score { font-size: 1.6rem; font-weight: 800; text-align: center; font-variant-numeric: tabular-nums; background: var(--score-pill-bg); border-radius: 999px; padding: 2px 0; margin: 2px 0; }
 .acol__pending { text-align: center; padding: var(--sp-1) 0; }
-.acol__venue { font-size: var(--fs-xs); color: var(--text-muted); margin-top: auto; display: flex; align-items: center; gap: 4px; }
+.acol__venue { font-size: var(--fs-xs); color: var(--score-fg-muted); margin-top: auto; display: flex; align-items: center; gap: 4px; }
 .acol__venue-icon { flex-shrink: 0; }
 
-/* ---------------------- Timeline Infinito ------------------------------- */
+/* ---------------------- Timeline Infinito -------------------------------
+ * Misma tarjeta "scoreboard" oscura que el resto de los listados de
+ * partidos, para que la identidad visual sea consistente en toda la app. */
 .tl-head { display: flex; align-items: center; justify-content: space-between; }
 .tl-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
-.tl-item { display: grid; grid-template-columns: 54px 70px 1fr auto; gap: var(--sp-3); align-items: center; background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: var(--sp-3); }
-.tl-item__idx { font-weight: 700; color: var(--team-accent); font-variant-numeric: tabular-nums; }
-.tl-item__date { font-size: var(--fs-xs); color: var(--text-muted); }
-.tl-item__teams { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); font-weight: 600; font-size: var(--fs-sm); }
-.tl-item__score { font-weight: 700; font-variant-numeric: tabular-nums; }
-.tl-item__stage { font-size: var(--fs-xs); text-align: right; }
+.tl-item { display: grid; grid-template-columns: 54px 70px 1fr auto; gap: var(--sp-3); align-items: center; background: var(--score-bg); border-radius: var(--radius-sm); padding: var(--sp-3); color: var(--score-fg); }
+.tl-item__idx { font-weight: 800; color: var(--wc-lime); font-variant-numeric: tabular-nums; }
+.tl-item__date { font-size: var(--fs-xs); color: var(--score-fg-muted); }
+.tl-item__teams { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); font-weight: 700; text-transform: uppercase; font-size: var(--fs-sm); }
+.tl-item__teams .flag-ico { border-radius: 4px; box-shadow: 0 0 0 1px rgba(255,255,255,0.15); }
+.tl-item__score { font-weight: 800; font-variant-numeric: tabular-nums; background: var(--score-pill-bg); border-radius: 999px; padding: 2px 10px; }
+.tl-item__stage { font-size: var(--fs-xs); text-align: right; color: var(--score-fg-muted); }
+.tl-item .tag--pending { color: var(--score-fg-muted); border-color: var(--score-fg-muted); }
 .tl-sentinel { text-align: center; padding: var(--sp-4); color: var(--text-muted); font-size: var(--fs-sm); }
 .tl-end { font-weight: 700; color: var(--text-secondary); }
 @media (max-width: 620px) { .tl-item { grid-template-columns: 40px 1fr; } .tl-item__date, .tl-item__stage { display: none; } }
 
-/* ---------------------- Matriz de Enfrentamientos ----------------------- */
+/* ---------------------- Matriz de Enfrentamientos -----------------------
+ * Cada grupo tiene su propio color (--g, inyectado inline por JS desde
+ * App.common.groupColor) — referencia: tarjetas de grupo con marco de color
+ * propio y "chip" oscuro para el marcador. */
 .group-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
-.group-tab { width: 40px; height: 40px; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); background: var(--surface-1); color: var(--text-secondary); font: inherit; font-weight: 700; cursor: pointer; }
-.group-tab.is-active { background: var(--team-accent); color: var(--team-accent-contrast); border-color: transparent; }
+.group-tab { width: 40px; height: 40px; border-radius: var(--radius-sm); border: 2px solid var(--g, var(--border-strong)); background: var(--surface-1); color: var(--g, var(--text-secondary)); font: inherit; font-weight: 800; cursor: pointer; transition: background var(--transition), color var(--transition); }
+.group-tab.is-active { background: var(--g, var(--team-accent)); color: #fff; }
 .matrix-wrap { overflow-x: auto; }
 .matrix { border-collapse: separate; border-spacing: 4px; margin-top: var(--sp-3); }
 .matrix th, .matrix td { padding: 0; }
-.matrix__corner { width: 46px; height: 46px; text-align: center; font-weight: 700; color: var(--team-accent-contrast); background: var(--team-accent); border-radius: var(--radius-sm); }
-.matrix__colh, .matrix__rowh { background: var(--surface-2); border-radius: var(--radius-sm); font-size: var(--fs-xs); color: var(--text-secondary); padding: 4px 8px; white-space: nowrap; }
+.matrix__corner { width: 46px; height: 46px; text-align: center; font-weight: 800; color: #fff; background: var(--g, var(--team-accent)); border-radius: var(--radius-sm); }
+.matrix__colh, .matrix__rowh { background: var(--score-bg); color: #fff; border-radius: var(--radius-sm); font-size: var(--fs-xs); padding: 4px 8px; white-space: nowrap; }
 .matrix__colh { text-align: center; min-width: 58px; }
-.matrix__colh .matrix__code { display: block; font-size: 0.68rem; color: var(--text-muted); }
-.matrix__rowh { text-align: left; }
+.matrix__colh .matrix__code { display: block; font-size: 0.68rem; color: var(--score-fg-muted); font-weight: 700; letter-spacing: 0.03em; }
+.matrix__rowh { text-align: left; font-weight: 700; }
 .matrix__cell { width: 58px; height: 46px; text-align: center; background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius-sm); }
 .matrix__cell.is-diagonal { background: repeating-linear-gradient(45deg, var(--surface-2), var(--surface-2) 5px, var(--surface-1) 5px, var(--surface-1) 10px); color: var(--text-muted); }
-.matrix__cell.is-played { background: var(--team-tint); }
-.matrix__result { font-weight: 700; font-variant-numeric: tabular-nums; font-size: var(--fs-sm); }
+.matrix__cell.is-played { background: var(--score-bg); border-color: var(--score-bg); }
+.matrix__result { font-weight: 800; font-variant-numeric: tabular-nums; font-size: var(--fs-sm); color: #fff; }
 .matrix__legend { margin-top: var(--sp-3); font-size: var(--fs-xs); }

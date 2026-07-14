@@ -36,7 +36,7 @@
   function groupTabs(){
     return '<div class="group-tabs" role="tablist" aria-label="Grupos">'+
       GROUPS.map(function(g){
-        return '<button class="group-tab'+(g===current?' is-active':'')+'" role="tab" '+
+        return '<button class="group-tab'+(g===current?' is-active':'')+'" role="tab" style="--g:'+C.groupColor(g)+'" '+
           'aria-selected="'+(g===current)+'" data-group="'+g+'" type="button">'+g+'</button>';
       }).join('')+'</div>';
   }
@@ -45,7 +45,7 @@
   function buildMatrix(letter){
     var teams = teamsOfGroup(letter);
     if(!teams.length){ return '<p class="notice">No hay datos del grupo '+C.esc(letter)+'.</p>'; }
-    var head = '<tr><th scope="col" class="matrix__corner">'+C.esc(letter)+'</th>'+
+    var head = '<tr><th scope="col" class="matrix__corner" style="--g:'+C.groupColor(letter)+'">'+C.esc(letter)+'</th>'+
       teams.map(function(t){ return '<th scope="col" class="matrix__colh" title="'+C.esc(t.name)+'">'+C.teamFlagHtml(t.id)+'<span class="matrix__code">'+C.esc(t.code)+'</span></th>'; }).join('')+'</tr>';
     var body = teams.map(function(rowT){
       var cells = teams.map(function(colT){

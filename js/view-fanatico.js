@@ -109,7 +109,7 @@
       el.innerHTML =
         heroHtml(team, row) + statRow(row, favId) +
         '<div class="split">'+
-          '<section class="card fade-in"><h3 class="section-title">Grupo '+C.esc(team.group)+'</h3>'+standings(list, favId)+'</section>'+
+          '<section class="card fade-in"><h3 class="section-title" style="--g:'+C.groupColor(team.group)+'">Grupo '+C.esc(team.group)+'</h3>'+standings(list, favId)+'</section>'+
           '<section class="card fade-in"><h3 class="section-title">Partidos de '+C.esc(team.name)+'</h3>'+matches(teamMatches, team)+'</section>'+
         '</div>';
     }

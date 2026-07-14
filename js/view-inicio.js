@@ -27,7 +27,7 @@
             '<h2 class="hero-lg__title">Copa Mundial de la FIFA 2026</h2>'+
             '<p class="hero-lg__sub">Un solo panel con los cinco apartados: sedes, agenda simultánea, timeline infinito, dashboard del fanático y matriz de grupos.</p>'+
           '</div>'+
-          '<div class="hero-lg__badge">'+C.icon('ball')+'</div>'+
+          '<div class="hero-lg__badge"><img src="assets/emblem.png" alt="Emblema oficial FIFA World Cup 26" width="96" height="96"></div>'+
         '</section>'+
         '<div class="kpi-row fade-in">'+
           tile(S.teams.length || '—', 'Selecciones')+
