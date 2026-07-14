@@ -1,0 +1,78 @@
+/* ============================================================================
+ * variables.css — Design tokens (colores, tipografía, espaciado, sombras)
+ * ----------------------------------------------------------------------------
+ * Fuente única de verdad del sistema visual. La paleta de texto/superficie usa
+ * tokens con contraste validado (guía de data-viz). El color de ACENTO del
+ * equipo (--team-accent) se repinta en tiempo de ejecución vía JS (requisito
+ * 2.4: "repintar variables CSS del dashboard según el equipo elegido").
+ * ==========================================================================*/
+:root {
+  /* --- Superficies e ink (modo claro; validados para contraste AA) -------- */
+  --surface-page:   #f9f9f7;
+  --surface-1:      #ffffff;
+  --surface-2:      #f4f4f1;
+  --text-primary:   #0b0b0b;   /* 18:1 sobre surface-1 */
+  --text-secondary: #52514e;   /* 7.4:1 */
+  --text-muted:     #6c6b66;   /* 4.7:1 (AA texto normal) */
+  --border:         rgba(11, 11, 11, 0.12);
+  --border-strong:  rgba(11, 11, 11, 0.22);
+
+  /* --- Estados (íconos + etiqueta siempre acompañan al color) ------------- */
+  --good:    #0a7a2f;
+  --warning: #9a6700;
+  --danger:  #c0362c;
+  --info:    #1c5cab;
+
+  /* --- Acento del equipo (valores por defecto; JS los sobrescribe) -------- */
+  --team-accent:          #1c5cab;  /* color de marca del equipo */
+  --team-accent-contrast: #ffffff;  /* texto legible SOBRE el acento */
+  --team-tint:            rgba(28, 92, 171, 0.10); /* lavado suave del acento */
+  --team-tint-strong:     rgba(28, 92, 171, 0.18);
+
+  /* --- Tipografía --------------------------------------------------------- */
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --fs-hero:   clamp(2.4rem, 5vw, 3.4rem);
+  --fs-xl:     1.5rem;
+  --fs-lg:     1.15rem;
+  --fs-md:     1rem;
+  --fs-sm:     0.875rem;
+  --fs-xs:     0.75rem;
+
+  /* --- Espaciado y radios ------------------------------------------------- */
+  --sp-1: 0.25rem; --sp-2: 0.5rem; --sp-3: 0.75rem; --sp-4: 1rem;
+  --sp-5: 1.5rem; --sp-6: 2rem; --sp-8: 3rem;
+  --radius-sm: 8px; --radius-md: 14px; --radius-lg: 20px;
+
+  --shadow-1: 0 1px 2px rgba(11,11,11,0.06), 0 1px 3px rgba(11,11,11,0.04);
+  --shadow-2: 0 4px 14px rgba(11,11,11,0.08);
+
+  --transition: 0.25s ease;
+}
+
+/* --- Modo oscuro (preferencia del sistema; los pasos se re-eligen, no se
+ *     invierten sin más — mantienen contraste sobre la superficie oscura) --- */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface-page:   #0d0d0d;
+    --surface-1:      #1a1a19;
+    --surface-2:      #232320;
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #98968d;
+    --border:         rgba(255, 255, 255, 0.14);
+    --border-strong:  rgba(255, 255, 255, 0.26);
+
+    --good:    #3fbf5f;
+    --warning: #f0b429;
+    --danger:  #f0715f;
+    --info:    #6da7ec;
+
+    --team-accent:          #6da7ec;
+    --team-accent-contrast: #0b0b0b;
+    --team-tint:            rgba(109, 167, 236, 0.14);
+    --team-tint-strong:     rgba(109, 167, 236, 0.24);
+
+    --shadow-1: 0 1px 2px rgba(0,0,0,0.4);
+    --shadow-2: 0 6px 20px rgba(0,0,0,0.5);
+  }
+}
