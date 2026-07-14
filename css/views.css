@@ -5,13 +5,13 @@
 /* ---------------------- Inicio / Resumen -------------------------------- */
 .hero-lg {
   display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4);
-  background: linear-gradient(120deg, var(--team-tint-strong), transparent), var(--surface-1);
-  border: 1px solid var(--border); border-left: 6px solid var(--team-accent);
+  background: var(--wc-gradient);
   border-radius: var(--radius-lg); padding: var(--sp-6);
+  color: #fff;
 }
-.hero-lg__title { margin: 0 0 var(--sp-2); font-size: clamp(1.6rem, 3vw, 2.2rem); }
-.hero-lg__sub { margin: 0; color: var(--text-secondary); max-width: 60ch; }
-.hero-lg__badge { font-size: 3.4rem; }
+.hero-lg__title { margin: 0 0 var(--sp-2); font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 800; letter-spacing: -0.02em; text-transform: uppercase; }
+.hero-lg__sub { margin: 0; color: rgba(255,255,255,0.88); max-width: 60ch; }
+.hero-lg__badge { font-size: 3.4rem; color: #fff; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25)); }
 
 .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--sp-3); }
 .kpi { background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--sp-4); text-align: center; }
@@ -26,7 +26,7 @@
   transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
 }
 .module-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-2); border-color: var(--team-accent); }
-.module-card__icon { font-size: 1.8rem; }
+.module-card__icon { font-size: 1.8rem; color: var(--team-accent); }
 .module-card__title { font-weight: 700; }
 .module-card__desc { font-size: var(--fs-sm); color: var(--text-secondary); }
 
@@ -58,7 +58,8 @@
 .acol__team { display: flex; align-items: center; gap: var(--sp-2); font-weight: 600; }
 .acol__score { font-size: 1.6rem; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; }
 .acol__pending { text-align: center; padding: var(--sp-1) 0; }
-.acol__venue { font-size: var(--fs-xs); color: var(--text-muted); margin-top: auto; }
+.acol__venue { font-size: var(--fs-xs); color: var(--text-muted); margin-top: auto; display: flex; align-items: center; gap: 4px; }
+.acol__venue-icon { flex-shrink: 0; }
 
 /* ---------------------- Timeline Infinito ------------------------------- */
 .tl-head { display: flex; align-items: center; justify-content: space-between; }

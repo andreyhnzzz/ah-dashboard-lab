@@ -12,7 +12,7 @@
   function stadiumButton(st){
     var count = (S.gamesByStadium[st.id] || []).length;
     return '<button class="venue" type="button" data-stadium="'+st.id+'" aria-pressed="false">'+
-      '<span class="venue__pin" aria-hidden="true">📍</span>'+
+      '<span class="venue__pin">'+C.icon('pin')+'</span>'+
       '<span class="venue__body"><span class="venue__name">'+C.esc(st.name)+'</span>'+
       '<span class="venue__city">'+C.esc(st.city)+' · '+count+' partidos</span></span></button>';
   }
@@ -46,7 +46,7 @@
 
   App.views = App.views || {};
   App.views.sedes = {
-    title: 'Tour Virtual de Sedes', desc: 'Elegí una sede para saltar a sus partidos.', icon: '🏟️',
+    title: 'Tour Virtual de Sedes', desc: 'Elegí una sede para saltar a sus partidos.', icon: 'stadium',
     render: function (el) {
       if(!S.stadiums.length){ el.innerHTML='<div class="card"><p class="notice">No se pudo cargar la lista de sedes. Probá "Recargar datos".</p></div>'; return; }
       el.innerHTML =

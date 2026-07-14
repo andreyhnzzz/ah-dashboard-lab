@@ -23,14 +23,41 @@
   --danger:  #c0362c;
   --info:    #1c5cab;
 
-  /* --- Acento del equipo (valores por defecto; JS los sobrescribe) -------- */
-  --team-accent:          #1c5cab;  /* color de marca del equipo */
-  --team-accent-contrast: #ffffff;  /* texto legible SOBRE el acento */
-  --team-tint:            rgba(28, 92, 171, 0.10); /* lavado suave del acento */
-  --team-tint-strong:     rgba(28, 92, 171, 0.18);
+  /* --- Paleta oficial Mundial 2026 -----------------------------------------
+   * Tomada de la guía de identidad adjunta (emblema, wordmark y paleta de
+   * color oficiales): franja cálida (rojo/magenta) → franja fría (violeta/
+   * azul/verde azulado). Se usa para el "brand" fijo del shell (logo, login,
+   * subrayados de sección) — el acento POR EQUIPO (--team-accent) sigue
+   * siendo dinámico y no se toca, ya que tematiza el Dashboard del Fanático. */
+  --wc-red:      #e0312b;
+  --wc-magenta:  #c62368;
+  --wc-maroon:   #6a1029;
+  --wc-purple:   #4a2a86;
+  --wc-violet:   #6f3fc4;
+  --wc-lavender: #9b7fe6;
+  --wc-blue:     #1f3fa6;
+  --wc-sky:      #2f9bdb;
+  --wc-teal:     #0f9e8e;
+  --wc-green:    #34b06a;
+  --wc-lime:     #a4d65e;
+  --wc-ink:      #120f1c; /* negro con tinte violeta, del emblema/wordmark */
 
-  /* --- Tipografía --------------------------------------------------------- */
+  --wc-gradient: linear-gradient(120deg, var(--wc-red) 0%, var(--wc-magenta) 22%, var(--wc-purple) 45%, var(--wc-violet) 62%, var(--wc-blue) 78%, var(--wc-teal) 100%);
+
+  /* --- Acento del equipo (valores por defecto; JS los sobrescribe) -------- */
+  --team-accent:          #4a2a86;  /* color de marca del equipo (o de la paleta oficial, sin favorito) */
+  --team-accent-contrast: #ffffff;  /* texto legible SOBRE el acento */
+  --team-tint:            rgba(74, 42, 134, 0.10); /* lavado suave del acento */
+  --team-tint-strong:     rgba(74, 42, 134, 0.18);
+
+  /* --- Tipografía -----------------------------------------------------------
+   * Sin CDN de fuentes (modo offline / doble-clic): se aproxima la tipografía
+   * "FWC26 Event Typeface" (condensada, muy bold, para titulares) con la pila
+   * del sistema en peso 800/900 + letter-spacing negativo + mayúsculas — ver
+   * clase .display en layout.css. El texto de cuerpo usa Noto Sans si está
+   * instalada (tipografía de soporte oficial) con fallback a system-ui. --- */
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Noto Sans", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --fs-hero:   clamp(2.4rem, 5vw, 3.4rem);
   --fs-xl:     1.5rem;
   --fs-lg:     1.15rem;
@@ -47,6 +74,16 @@
   --shadow-2: 0 4px 14px rgba(11,11,11,0.08);
 
   --transition: 0.25s ease;
+
+  /* --- Pantalla de login / re-login (apartado 1.5: JWT + modal 401) -------
+   * Acento tomado de la paleta oficial (violeta/magenta), independiente del
+   * acento dinámico del equipo (el login ocurre ANTES de elegir favorito). */
+  --auth-bg:               #f4f1f8;
+  --auth-card-bg:          #ffffff;
+  --auth-accent:           #6f3fc4;
+  --auth-accent-hover:     #5c2fae;
+  --auth-accent-contrast:  #ffffff;
+  --auth-ring:             rgba(111, 63, 196, 0.3);
 }
 
 /* --- Modo oscuro (preferencia del sistema; los pasos se re-eligen, no se
@@ -67,12 +104,19 @@
     --danger:  #f0715f;
     --info:    #6da7ec;
 
-    --team-accent:          #6da7ec;
+    --team-accent:          #9b7fe6;
     --team-accent-contrast: #0b0b0b;
-    --team-tint:            rgba(109, 167, 236, 0.14);
-    --team-tint-strong:     rgba(109, 167, 236, 0.24);
+    --team-tint:            rgba(155, 127, 230, 0.16);
+    --team-tint-strong:     rgba(155, 127, 230, 0.26);
 
     --shadow-1: 0 1px 2px rgba(0,0,0,0.4);
     --shadow-2: 0 6px 20px rgba(0,0,0,0.5);
+
+    --auth-bg:               #14111d;
+    --auth-card-bg:          #1e1a2b;
+    --auth-accent:           #9b7fe6;
+    --auth-accent-hover:     #ab94ec;
+    --auth-accent-contrast:  #14111d;
+    --auth-ring:             rgba(155, 127, 230, 0.35);
   }
 }

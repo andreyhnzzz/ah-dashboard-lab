@@ -26,6 +26,35 @@ resiliencia.
    deshabilitada. Si `/games` falla, la matriz se dibuja completa en "Pendiente"
    y, al recuperar, se actualizan **solo las celdas afectadas** (sin rebuild).
 
+## Sistema de login (`js/view-login.js`)
+
+Antes de mostrar cualquier dato la app pasa por una **pantalla de login real**
+(no solo un botón "reautenticarme" perdido en un modal) — tarjeta centrada
+sobre fondo cálido, un único campo, un único botón de acento, sin ruido:
+inspirada a propósito en el login minimalista de **claude.ai**. Es la ÚNICA
+puerta hacia un token válido y **la misma pantalla resuelve los tres momentos
+de la sesión**:
+
+| Modo | Cuándo aparece | Qué pide |
+|---|---|---|
+| `new` | Primera vez en este navegador (no hay identidad de dispositivo guardada) | Un nombre para mostrar → `POST /auth/register` |
+| `returning` | Ya existe una identidad guardada pero no hay token vigente (p. ej. se cerró el navegador) | Un clic en "Continuar" → `POST /auth/authenticate` |
+| `expired` | Un **401** — real o **simulado desde "Modo demo"** — invalidó el token a mitad de sesión | Un clic en "Reautenticarme" → `POST /auth/authenticate` |
+
+Esto es justamente el reto de resiliencia de la sección 1.5: el 401 limpia el
+token y **exige volver a loguear antes de seguir**, sin `location.reload()` y
+sin perder la vista activa ni el equipo favorito — `hooks.onAuthExpired` en
+`js/api.js` llama a `App.auth.show('expired', …)` y, apenas el usuario vuelve
+a autenticarse, retoma exactamente donde se había quedado. Podés reproducirlo
+en cualquier momento con **Modo demo → Simular respuesta → `401 · Sesión
+expirada`** y luego "Recargar datos": la pantalla de login vuelve a aparecer
+sobre el resto de la app (con `aria-hidden` en el shell, como cualquier
+diálogo modal accesible).
+
+Sin errores/`alert()`: si el registro o el login fallan (por ejemplo, sin
+conexión), el mensaje aparece **dentro de la misma tarjeta** con un botón para
+reintentar, nunca como un `alert()` del navegador.
+
 ## Cómo ejecutarla
 
 Abre por **doble clic** en `index.html` (scripts clásicos, sin `type="module"`;
@@ -50,14 +79,19 @@ La API pública no entrega credenciales de curso: exige JWT en cada `/get/*`.
 La app resuelve esto registrando **una identidad de dispositivo** la primera
 vez que corre en un navegador:
 
-1. `POST /auth/register` con un email/contraseña generados localmente
-   (`js/api.js → registerDevice()`), guardados después en `localStorage`
-   (nunca se muestran en la UI ni se envían a nadie más).
-2. En cada visita siguiente, `POST /auth/authenticate` reutiliza esas mismas
-   credenciales (`loginDevice()`) — el token real dura 84 días según la
-   documentación de la API, así que no hace falta re-registrarse.
+1. **Pantalla de login** (`js/view-login.js → App.auth`, ver sección arriba):
+   el usuario ve la tarjeta antes que cualquier dato, escribe un nombre y
+   confirma → `POST /auth/register` (`js/api.js → registerDevice()`), con el
+   email/contraseña generados localmente y guardados después en
+   `localStorage` (nunca se muestran completos en la UI ni se envían a nadie
+   más).
+2. En cada visita siguiente, la misma pantalla (modo `returning`) dispara
+   `POST /auth/authenticate` reutilizando esas credenciales (`loginDevice()`)
+   — el token real dura 84 días según la documentación de la API, así que no
+   hace falta re-registrarse cada vez.
 3. Cada `/get/*` viaja con `Authorization: Bearer <token>`. Un 401 limpia el
-   token y dispara el modal de reautenticación (sin `location.reload()`).
+   token y vuelve a mostrar la pantalla de login (modo `expired`), sin
+   `location.reload()` y retomando la carga apenas se reautentica.
 
 ### Límite de esta entrega: no se pudo probar en vivo contra `worldcup26.ir`
 
@@ -94,14 +128,15 @@ Por eso:
 
 ```
 mundial2026-dashboard/
-├── index.html                 Shell: sidebar + topbar + contenedor de vistas
-├── css/  tokens · layout · components · views
+├── index.html                 Shell: gate de login + sidebar + topbar + contenedor de vistas
+├── css/  tokens · layout · components · views · auth (pantalla de login)
 └── js/
     ├── config.js              Configuración central (endpoints, backoff, claves)
     ├── mock-data.js           Dataset local (48 equipos, 16 sedes, 104 partidos) + simulador
-    ├── storage.js             localStorage: token, favorito, caché offline
+    ├── storage.js             localStorage: token, identidad de dispositivo, favorito, caché offline
     ├── api.js                 Capa de red: Fetch + JWT + resiliencia (núcleo)
     ├── common.js              Helpers, store normalizado, tematización, banners
+    ├── view-login.js          Pantalla de login / re-login (App.auth) — new / returning / expired
     ├── view-inicio.js         Resumen
     ├── view-sedes.js          Apartado 2.1
     ├── view-agenda.js         Apartado 2.2
@@ -118,8 +153,8 @@ La lógica de **fetch (api.js) está separada de la presentación** (vistas).
 
 1. **JWT** en cada petición (`Authorization: Bearer <token>`).
 2. **`async/await` exclusivo** — sin `.then()` ni `.catch()` en el código.
-3. **401** → limpia token y muestra modal de sesión expirada con reautenticación,
-   **sin `window.location.reload()`**.
+3. **401** → limpia token y vuelve a mostrar la pantalla de login (modo
+   "expired") para reautenticar, **sin `window.location.reload()`**.
 4. **Backoff exponencial (429/500)** 1s, 2s, 4s, 8s; el 429 muestra un
    **countdown visible**.
 5. **Modo offline** con `localStorage`: si una petición falla y hay caché, se
@@ -156,6 +191,7 @@ desde `css/tokens.css`.
 ## Accesibilidad
 
 Landmarks semánticos, navegación por teclado con foco visible, `aria-live` en
-banners y regiones dinámicas, modal 401 con `role="dialog"` + `aria-modal`,
+banners y regiones dinámicas, pantalla de login con `role="dialog"` +
+`aria-modal` + `aria-hidden` en el resto del shell mientras está abierta,
 estado activo con `aria-pressed` / `aria-current`, contraste AA, modo claro/oscuro
 y respeto por `prefers-reduced-motion`.

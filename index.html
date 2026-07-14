@@ -5,21 +5,103 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mundial 2026 · Dashboard Integral</title>
   <meta name="description" content="Dashboard integral del Mundial 2026: tour de sedes, agenda simultánea, timeline infinito, dashboard del fanático y matriz de enfrentamientos.">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>%E2%9A%BD</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%23151022'/%3E%3Ctext x='12' y='17' font-family='Arial Black,Arial,sans-serif' font-weight='900' font-size='13' text-anchor='middle' fill='%2300E0B8'%3E26%3C/text%3E%3C/svg%3E">
 
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/views.css">
+  <link rel="stylesheet" href="css/auth.css">
 </head>
 <body>
+  <!-- ===================== Sprite de íconos SVG (sin emojis) =====================
+       Símbolos reutilizables vía <svg class="icon"><use href="#icon-x"/></svg>.
+       Trazo (stroke) 24x24, currentColor, para heredar el color del contexto. -->
+  <svg xmlns="http://www.w3.org/2000/svg" class="icon-sprite" aria-hidden="true" focusable="false">
+    <defs>
+      <!-- Balón (para círculos de marca: sidebar, login) -->
+      <symbol id="icon-ball" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9.25" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" d="M12 7.4l4.2 3.05-1.6 4.95h-5.2l-1.6-4.95L12 7.4z"/>
+        <path fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" d="M12 2.75v4.65M6.2 6.2l3.4 2.47M17.8 6.2l-3.4 2.47M4.2 13.1h4.6M15.2 13.1h4.6M9.4 15.4l-2.1 5.6M14.6 15.4l2.1 5.6"/>
+      </symbol>
+      <!-- Inicio -->
+      <symbol id="icon-home" viewBox="0 0 24 24">
+        <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M4 11.5 12 4l8 7.5M6 10v9.5h12V10"/>
+        <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M9.75 19.5v-6h4.5v6"/>
+      </symbol>
+      <!-- Estadio (sedes) -->
+      <symbol id="icon-stadium" viewBox="0 0 24 24">
+        <ellipse cx="12" cy="12.5" rx="9" ry="5.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+        <ellipse cx="12" cy="12.5" rx="5.2" ry="3.1" fill="none" stroke="currentColor" stroke-width="1.3"/>
+        <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M4.6 9.3v6.4M19.4 9.3v6.4"/>
+      </symbol>
+      <!-- Calendario (agenda) -->
+      <symbol id="icon-calendar" viewBox="0 0 24 24">
+        <rect x="3.75" y="5" width="16.5" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/>
+        <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M3.75 9.5h16.5M8 3.25v3M16 3.25v3"/>
+        <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M7.5 13.5h3M13.5 13.5h3M7.5 17h3M13.5 17h3"/>
+      </symbol>
+      <!-- Infinito (timeline) -->
+      <symbol id="icon-infinity" viewBox="0 0 24 24">
+        <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M7 9.5c-2.2 0-3.75 1.6-3.75 3.5S4.8 16.5 7 16.5c3 0 4-6.5 8-6.5 2.2 0 3.75 1.6 3.75 3.5S17.2 16.5 15 16.5c-4 0-5-6.5-8-6.5z"/>
+      </symbol>
+      <!-- Estrella (fanático) -->
+      <symbol id="icon-star" viewBox="0 0 24 24">
+        <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" d="M12 3.5l2.62 5.53 5.98.65-4.45 4.2 1.2 6.12L12 16.94l-5.35 3.06 1.2-6.12-4.45-4.2 5.98-.65L12 3.5z"/>
+      </symbol>
+      <!-- Cuadrícula (matriz) -->
+      <symbol id="icon-grid" viewBox="0 0 24 24">
+        <rect x="3.75" y="3.75" width="7.2" height="7.2" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6"/>
+        <rect x="13.05" y="3.75" width="7.2" height="7.2" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6"/>
+        <rect x="3.75" y="13.05" width="7.2" height="7.2" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6"/>
+        <rect x="13.05" y="13.05" width="7.2" height="7.2" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      </symbol>
+      <!-- Pin de mapa (sede) -->
+      <symbol id="icon-pin" viewBox="0 0 24 24">
+        <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" d="M12 21s-6.5-6.02-6.5-11A6.5 6.5 0 0 1 18.5 10c0 4.98-6.5 11-6.5 11z"/>
+        <circle cx="12" cy="10" r="2.2" fill="none" stroke="currentColor" stroke-width="1.5"/>
+      </symbol>
+      <!-- Trofeo (bandera no disponible) -->
+      <symbol id="icon-trophy" viewBox="0 0 24 24">
+        <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M7 4h10v4.2c0 2.9-2.24 5.3-5 5.3s-5-2.4-5-5.3V4z"/>
+        <path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" d="M7 5.5H4.6c0 2.6 1.5 4.3 3.5 4.6M17 5.5h2.4c0 2.6-1.5 4.3-3.5 4.6"/>
+        <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" d="M12 13.5v3.2M8.7 20h6.6M9.4 20c0-1.7.9-2.7 2.6-2.7s2.6 1 2.6 2.7"/>
+      </symbol>
+      <!-- Reloj de arena (reintentando) -->
+      <symbol id="icon-hourglass" viewBox="0 0 24 24">
+        <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M6 3.5h12M6 20.5h12M7 3.5c0 4 3 5.5 5 6.5 2-1 5-2.5 5-6.5M7 20.5c0-4 3-5.5 5-6.5 2 1 5 2.5 5 6.5"/>
+      </symbol>
+      <!-- Advertencia (datos no actualizados) -->
+      <symbol id="icon-warning" viewBox="0 0 24 24">
+        <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" d="M12 3.75 21.25 20H2.75L12 3.75z"/>
+        <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M12 10v3.6"/>
+        <circle cx="12" cy="16.6" r="0.9" fill="currentColor" stroke="none"/>
+      </symbol>
+      <!-- Error (bloqueado) -->
+      <symbol id="icon-error" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="8.75" fill="none" stroke="currentColor" stroke-width="1.6"/>
+        <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M6.5 6.5l11 11"/>
+      </symbol>
+      <!-- Sin señal (calendario no disponible) -->
+      <symbol id="icon-signal" viewBox="0 0 24 24">
+        <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M4 17.5 19.5 4M8.5 17.5c1.5-1.5 3.6-2.4 5.9-2.4M12 21h.01"/>
+        <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M15.8 12.6c1.1.55 2.05 1.3 2.8 2.2M4.6 12.8a11.9 11.9 0 0 1 4-2.7"/>
+      </symbol>
+      <!-- Check (clasificación) -->
+      <symbol id="icon-check" viewBox="0 0 24 24">
+        <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.5l5 5 10-11"/>
+      </symbol>
+    </defs>
+  </svg>
+
   <a class="skip-link" href="#view">Saltar al contenido principal</a>
 
   <div class="shell">
     <!-- ===================== Barra lateral de navegación ===================== -->
     <aside class="sidebar" aria-label="Navegación principal">
       <div class="sidebar__brand">
-        <span class="sidebar__logo" aria-hidden="true">⚽</span>
+        <span class="sidebar__logo"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-ball"></use></svg></span>
         <div>
           <strong class="sidebar__title">Mundial 2026</strong>
           <span class="sidebar__sub">Dashboard Integral</span>
@@ -91,13 +173,13 @@
       <!-- Banners globales de estado (aria-live) -->
       <div class="banners">
         <div id="banner-retry" class="banner banner--retry" role="status" aria-live="polite" hidden>
-          <span class="banner__icon" aria-hidden="true">⏳</span><span id="banner-retry-text">Reintentando…</span>
+          <span class="banner__icon" aria-hidden="true"><svg class="icon"><use href="#icon-hourglass"></use></svg></span><span id="banner-retry-text">Reintentando…</span>
         </div>
         <div id="banner-stale" class="banner banner--stale" role="status" aria-live="polite" hidden>
-          <span class="banner__icon" aria-hidden="true">⚠️</span><span id="banner-stale-text">Datos no actualizados.</span>
+          <span class="banner__icon" aria-hidden="true"><svg class="icon"><use href="#icon-warning"></use></svg></span><span id="banner-stale-text">Datos no actualizados.</span>
         </div>
         <div id="banner-error" class="banner banner--error" role="alert" hidden>
-          <span class="banner__icon" aria-hidden="true">⛔</span><span id="banner-error-text">No se pudieron cargar los datos.</span>
+          <span class="banner__icon" aria-hidden="true"><svg class="icon"><use href="#icon-error"></use></svg></span><span id="banner-error-text">No se pudieron cargar los datos.</span>
           <button class="btn btn--primary" id="btn-retry" type="button">Reintentar</button>
         </div>
       </div>
@@ -111,13 +193,31 @@
     </div>
   </div>
 
-  <!-- ===================== Modal de sesión expirada (401) ===================== -->
-  <div id="session-modal" class="modal-backdrop" hidden>
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-text">
-      <div class="modal__icon" aria-hidden="true">🔒</div>
-      <h2 class="modal__title" id="modal-title">Tu sesión expiró</h2>
-      <p class="modal__text" id="modal-text">El token de acceso ya no es válido (error 401). Reautenticate para continuar; no perdés tu configuración.</p>
-      <button class="btn btn--primary" id="btn-reauth" type="button">Reautenticarme</button>
+  <!-- ===================== Login / re-login (device identity + 401) =====================
+       Una sola pantalla para los tres momentos de la sesión: primer ingreso
+       ("new"), reingreso con identidad ya guardada ("returning") y expiración
+       de token real o simulada ("expired"). Ver js/view-login.js. -->
+  <div id="auth-gate" class="auth-gate" hidden>
+    <div class="auth-card" role="dialog" aria-modal="true" aria-labelledby="auth-title" aria-describedby="auth-desc">
+      <div class="auth-card__mark" aria-hidden="true"><svg class="icon"><use href="#icon-ball"></use></svg></div>
+      <h1 class="auth-card__title" id="auth-title">Bienvenido</h1>
+      <p class="auth-card__desc" id="auth-desc">Conectando con la API oficial del Mundial 2026…</p>
+
+      <div id="auth-status" class="auth-status" hidden role="status" aria-live="polite"></div>
+
+      <form id="auth-form" class="auth-form">
+        <div class="auth-field" id="auth-field-name">
+          <label class="auth-field__label" for="auth-name">Nombre para mostrar</label>
+          <input type="text" id="auth-name" class="auth-input" autocomplete="off" maxlength="40" placeholder="Fanático ISW-521">
+        </div>
+        <div class="auth-field" id="auth-field-email" hidden>
+          <span class="auth-field__label" id="auth-email-label">Sesión de dispositivo</span>
+          <div class="auth-email-chip" id="auth-email-chip" aria-labelledby="auth-email-label"></div>
+        </div>
+        <button type="submit" class="btn auth-submit" id="auth-submit">Continuar</button>
+      </form>
+
+      <p class="auth-card__foot">Identidad de dispositivo generada localmente (correo y contraseña únicos para este navegador) solo para poder consultar la API del Mundial 2026 — no se piden ni se guardan datos personales reales.</p>
     </div>
   </div>
 
@@ -127,6 +227,7 @@
   <script src="js/storage.js"></script>
   <script src="js/api.js"></script>
   <script src="js/common.js"></script>
+  <script src="js/view-login.js"></script>
   <script src="js/view-inicio.js"></script>
   <script src="js/view-sedes.js"></script>
   <script src="js/view-agenda.js"></script>

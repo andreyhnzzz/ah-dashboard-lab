@@ -15,6 +15,13 @@
 
   function $(id) { return document.getElementById(id); }
 
+  // Ícono SVG del sprite embebido en index.html (ver <svg class="icon-sprite">).
+  // Reemplaza los emojis: mismo tratamiento tipográfico en toda la app,
+  // hereda color vía currentColor y escala con font-size.
+  function icon(name, extraCls) {
+    return '<svg class="icon' + (extraCls ? ' ' + extraCls : '') + '" aria-hidden="true" focusable="false"><use href="#icon-' + name + '"></use></svg>';
+  }
+
   function esc(v) {
     return String(v == null ? '' : v)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -228,7 +235,10 @@
       rows.forEach(function(r){ r.gd = r.gf - r.ga; });
       rows.sort(function(a,b){ return (b.pts-a.pts) || (b.gd-a.gd) || (b.gf-a.gf); });
       rows.forEach(function(r, i){ r.position = i + 1; });
-      store.groupByLetter[g.group] = rows;
+      // La API real envuelve la letra del grupo en "name" (p. ej. {"name":"H",
+      // "teams":[...]}), no en "group" — se acepta el fallback por si el mock
+      // u otra versión de la API usara la clave antigua.
+      store.groupByLetter[g.name || g.group] = rows;
     });
     store.ready.groups = true;
   }
@@ -246,7 +256,7 @@
     if (t && t.flag) {
       return '<img class="flag-ico" src="'+esc(t.flag)+'" alt="" loading="lazy" width="20" height="15">';
     }
-    return '<span aria-hidden="true">🏆</span>';
+    return icon('trophy', 'flag-ico flag-ico--fallback');
   }
 
   // Récord Jugados/Ganados/Empatados/Perdidos de un equipo en fase de grupos,
@@ -283,9 +293,9 @@
       var pill=$('conn-pill'), txt=$('conn-text');
       pill.className='pill '+(state==='ok'?'pill--ok':state==='offline'?'pill--warn':'pill--retry');
       txt.textContent = state==='ok'?'En línea':state==='offline'?'Sin conexión':'Reintentando';
-    },
-    showModal: function(){ $('session-modal').hidden=false; $('btn-reauth').focus(); },
-    hideModal: function(){ $('session-modal').hidden=true; }
+    }
+    // El modal de sesión expirada (401) se reemplazó por la pantalla de login
+    // completa (App.auth, ver js/view-login.js) — ver hooks.onAuthExpired en app.js.
   };
 
   /* ---------------------- Skeleton genérico ------------------------------- */
@@ -295,7 +305,7 @@
   }
 
   App.common = {
-    $: $, esc: esc, store: store,
+    $: $, esc: esc, icon: icon, store: store,
     setTeams: setTeams, setStadiums: setStadiums, setGames: setGames, setGroups: setGroups,
     teamName: teamName, teamFlagHtml: teamFlagHtml, teamRecord: teamRecord,
     applyTeamTheme: applyTeamTheme, contrastText: contrastText,

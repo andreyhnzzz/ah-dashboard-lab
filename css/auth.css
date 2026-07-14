@@ -1,0 +1,147 @@
+/* ============================================================================
+ * auth.css — Pantalla de login / re-login (device identity + errores 401)
+ * ----------------------------------------------------------------------------
+ * Referencia visual: el login minimalista de claude.ai — tarjeta blanca
+ * centrada, fondo crema, un único botón de acento cálido, tipografía limpia
+ * y sin ruido. Se reutiliza para TRES momentos del mismo flujo de sesión:
+ *   1. "new"       → primera vez en este navegador (aún no hay identidad).
+ *   2. "returning" → ya existe identidad guardada, solo hace falta token.
+ *   3. "expired"   → un 401 (real o simulado) invalidó el token en curso.
+ * ==========================================================================*/
+
+body.auth-open { overflow: hidden; }
+
+.auth-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: var(--sp-4);
+  background: var(--auth-bg);
+  animation: authFadeIn 0.2s ease;
+}
+.auth-gate[hidden] { display: none; }
+
+@keyframes authFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--auth-card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-2);
+  padding: var(--sp-8) var(--sp-6) var(--sp-6);
+  text-align: center;
+}
+
+.auth-card__mark {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto var(--sp-4);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--wc-gradient);
+  color: #fff;
+  font-size: 1.5rem;
+  box-shadow: 0 0 0 6px var(--auth-ring);
+}
+
+.auth-card__title {
+  margin: 0 0 var(--sp-2);
+  font-size: var(--fs-xl);
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+
+.auth-card__desc {
+  margin: 0 0 var(--sp-5);
+  color: var(--text-secondary);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+}
+
+.auth-form { display: flex; flex-direction: column; gap: var(--sp-4); text-align: left; }
+
+.auth-field { display: flex; flex-direction: column; gap: var(--sp-2); }
+.auth-field[hidden] { display: none; } /* el atributo hidden pierde ante .auth-field{display:flex} sin esto */
+
+.auth-field__label {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.auth-input {
+  font: inherit;
+  font-size: var(--fs-md);
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-page);
+  color: var(--text-primary);
+}
+.auth-input:focus-visible {
+  outline: 2px solid var(--auth-accent);
+  outline-offset: 1px;
+}
+
+.auth-email-chip {
+  font-size: var(--fs-sm);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--border-strong);
+  background: var(--surface-page);
+  color: var(--text-secondary);
+  word-break: break-all;
+}
+
+.auth-submit {
+  width: 100%;
+  justify-content: center;
+  background: var(--auth-accent);
+  color: var(--auth-accent-contrast);
+  border-color: transparent;
+  font-weight: 600;
+  padding: 0.75rem var(--sp-4);
+}
+.auth-submit:hover:not(:disabled) { background: var(--auth-accent-hover); }
+.auth-submit:focus-visible { outline-color: var(--auth-accent-hover); }
+
+.auth-status {
+  margin-bottom: var(--sp-4);
+  padding: var(--sp-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-sm);
+  text-align: left;
+  line-height: 1.45;
+}
+.auth-status--loading {
+  background: var(--surface-2);
+  color: var(--text-secondary);
+}
+.auth-status--error {
+  background: rgba(192, 54, 44, 0.1);
+  color: var(--danger);
+}
+
+.auth-card__foot {
+  margin: var(--sp-5) 0 0;
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  line-height: 1.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-gate { animation: none; }
+}

@@ -94,7 +94,7 @@
 
   App.views = App.views || {};
   App.views.matriz = {
-    title: 'Matriz de Enfrentamientos', desc: 'Cuadrícula 4×4 de resultados por grupo.', icon: '🔲',
+    title: 'Matriz de Enfrentamientos', desc: 'Cuadrícula 4×4 de resultados por grupo.', icon: 'grid',
     render: function (el) {
       if(!current){ current = 'A'; }
       el.innerHTML = groupTabs() + '<div id="matrix-host" aria-live="polite"></div>';

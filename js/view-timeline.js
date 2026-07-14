@@ -54,13 +54,13 @@
 
   App.views = App.views || {};
   App.views.timeline = {
-    title: 'Timeline Infinito', desc: 'Los 104 partidos, cargados de a 10 al hacer scroll.', icon: '♾️',
+    title: 'Timeline Infinito', desc: 'Los 104 partidos, cargados de a 10 al hacer scroll.', icon: 'infinity',
     render: function (el) {
       disconnect(); inserted = 0;
 
       if(!S.ready.games || !S.games.length){
         el.innerHTML = '<div class="card empty-state">'+
-          '<div class="empty-state__icon" aria-hidden="true">📡</div>'+
+          '<div class="empty-state__icon">'+C.icon('signal')+'</div>'+
           '<h3>No se pudo cargar el calendario</h3>'+
           '<p class="notice">La petición de partidos falló. Reintentá para disparar el backoff exponencial.</p>'+
           '<button class="btn btn--primary" id="tl-retry" type="button">Reintentar carga</button>'+

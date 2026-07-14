@@ -31,7 +31,7 @@
       '<div class="acol__team">'+C.teamFlagHtml(m.home_team, m.home_team_label)+' <span>'+C.esc(C.teamName(m.home_team, m.home_team_label))+'</span></div>'+
       center+
       '<div class="acol__team">'+C.teamFlagHtml(m.away_team, m.away_team_label)+' <span>'+C.esc(C.teamName(m.away_team, m.away_team_label))+'</span></div>'+
-      '<footer class="acol__venue">'+(st?('🏟️ '+C.esc(st.name)+' · '+C.esc(st.city)):'Sede por confirmar')+'</footer>'+
+      '<footer class="acol__venue">'+(st?(C.icon('stadium','acol__venue-icon')+' '+C.esc(st.name)+' · '+C.esc(st.city)):'Sede por confirmar')+'</footer>'+
       '</article>';
   }
 
@@ -79,7 +79,7 @@
 
   App.views = App.views || {};
   App.views.agenda = {
-    title: 'Agenda Simultánea', desc: 'Días con dos o más partidos, en columnas paralelas.', icon: '🗓️',
+    title: 'Agenda Simultánea', desc: 'Días con dos o más partidos, en columnas paralelas.', icon: 'calendar',
     render: function (el) {
       dates = computeDates();
       if(idx > dates.length-1){ idx = 0; }

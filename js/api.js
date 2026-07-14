@@ -94,14 +94,26 @@
     return Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
   }
 
-  async function registerDevice() {
+  // registerDevice()/loginDevice() son las DOS únicas puertas de entrada al
+  // token, y las llama tanto la pantalla de login (js/view-login.js, con el
+  // usuario mirando) como el fallback silencioso de getData() más abajo. En
+  // modo mock generan un token falso sin red (para poder ensayar 401/429/500
+  // en la defensa técnica); en modo real pegan contra worldcup26.ir.
+  async function registerDevice(displayName) {
+    if (C.USE_MOCK) {
+      var mockEmail = 'demo.' + randomToken() + '@wc26-isw521.local';
+      App.storage.setDeviceCredentials(mockEmail, 'mock-password');
+      var fakeToken1 = 'mock.jwt.' + Date.now();
+      App.storage.setToken(fakeToken1);
+      return fakeToken1;
+    }
     var suffix = randomToken();
     var email = 'dashboard.' + suffix + '@wc26-isw521.local';
     var password = 'Wc26-' + suffix + '-Aa1';
     var res = await fetch(C.API_BASE + C.AUTH_REGISTER_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({ name: 'Dashboard ISW-521', email: email, password: password })
+      body: JSON.stringify({ name: (displayName || 'Fanático ISW-521'), email: email, password: password })
     });
     if (!res.ok) { throw new HttpError(res.status, 'No se pudo registrar el dispositivo en la API'); }
     var body = await res.json();
@@ -112,6 +124,11 @@
   }
 
   async function loginDevice(email, password) {
+    if (C.USE_MOCK) {
+      var fakeToken2 = 'mock.jwt.' + Date.now();
+      App.storage.setToken(fakeToken2);
+      return fakeToken2;
+    }
     var res = await fetch(C.API_BASE + C.AUTH_LOGIN_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -124,24 +141,18 @@
     return body.token;
   }
 
+  // Fallback SILENCIOSO usado solo por getData() si, por alguna razón, se
+  // pide un recurso sin token y sin que la pantalla de login haya corrido
+  // todavía (no debería pasar en el flujo normal, que siempre loguea primero).
   async function authenticate() {
-    if (C.USE_MOCK) {
-      // Token simulado: permite ejercitar el flujo completo (y demostrar
-      // 401/429/500) sin depender de la disponibilidad de la API real.
-      var fakeToken = 'mock.jwt.' + Date.now();
-      App.storage.setToken(fakeToken);
-      return fakeToken;
-    }
     var email = App.storage.getDeviceEmail();
     var password = App.storage.getDevicePassword();
-    if (email && password) {
-      // Este navegador ya tiene una identidad registrada: solo reautentica.
-      return await loginDevice(email, password);
-    }
-    // Primera vez en este navegador: se registra una identidad nueva.
+    if (email && password) { return await loginDevice(email, password); }
     return await registerDevice();
   }
   App.api.authenticate = authenticate;
+  App.api.registerDevice = registerDevice;
+  App.api.loginDevice = loginDevice;
 
   /* --- Espera del backoff, con countdown visible en caso de 429 ----------- */
   async function backoffWait(attempt, status) {
@@ -229,11 +240,5 @@
     }
   }
   App.api.getData = getData;
-
-  /* --- Reautenticación explícita (botón del modal de sesión expirada) ------ */
-  async function reauthenticate() {
-    await authenticate();
-  }
-  App.api.reauthenticate = reauthenticate;
 
 })(window.App = window.App || {});

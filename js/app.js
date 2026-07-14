@@ -24,7 +24,7 @@
     nav.innerHTML = NAV.map(function(id){
       var v = App.views[id];
       return '<li><button class="nav__item" data-view="'+id+'" type="button">'+
-        '<span class="nav__icon" aria-hidden="true">'+v.icon+'</span>'+
+        '<span class="nav__icon">'+K.icon(v.icon)+'</span>'+
         '<span class="nav__label">'+K.esc(v.title)+'</span></button></li>';
     }).join('');
   }
@@ -80,9 +80,16 @@
     };
     App.api.hooks.onRetryDone = function(){ K.ui.hideRetry(); };
     App.api.hooks.onAuthExpired = function(){
-      console.warn('[resiliencia] 401 → token limpiado, modal de sesión expirada (sin reload)');
+      // Reto de resiliencia (401): limpiar token y volver a mostrar la
+      // pantalla de login (modo "expired"), SIN location.reload(). Al
+      // reautenticar con éxito se retoma la carga donde quedó, sin perder
+      // la vista actual ni el equipo favorito.
+      console.warn('[resiliencia] 401 → token limpiado, pidiendo re-login (sin reload)');
       K.ui.setConnection('offline');
-      K.ui.showModal();
+      App.auth.show('expired', async function(){
+        console.info('[resiliencia] reautenticación exitosa → recargando datos');
+        await loadAll();
+      });
     };
   }
 
@@ -199,18 +206,8 @@
     // Reintento / recarga.
     K.$('btn-retry').addEventListener('click', function(){ K.ui.hideError(); loadAll(); });
     K.$('btn-reload').addEventListener('click', function(){ loadAll(); });
-    // Reautenticación (async/await, sin reload).
-    K.$('btn-reauth').addEventListener('click', async function(){
-      try {
-        await App.api.reauthenticate();
-        K.ui.hideModal();
-        console.info('[resiliencia] reautenticación exitosa → recargando datos');
-        await loadAll();
-      } catch (err) {
-        console.error('[resiliencia] falló la reautenticación:', err);
-        K.ui.showError('No se pudo reautenticar. Intentá de nuevo.');
-      }
-    });
+    // La reautenticación tras un 401 vive en la pantalla de login
+    // (js/view-login.js → App.auth), disparada desde hooks.onAuthExpired.
     // Modo demo.
     K.$('toggle-mock').addEventListener('change', function(e){ C.USE_MOCK=e.target.checked; console.info('[config] USE_MOCK =',C.USE_MOCK); loadAll(); });
     K.$('sim-select').addEventListener('change', function(e){ C.SIMULATE=e.target.value; console.info('[config] SIMULATE =',C.SIMULATE||'(normal)','target=',C.SIMULATE_TARGET); });
@@ -218,21 +215,40 @@
   }
 
   /* ---------------------- Arranque ---------------------------------------- */
+  // Primera carga de datos tras conseguir un token válido (por login o
+  // porque ya había uno guardado). Único punto que aplica el tema del
+  // favorito recuperado, para no repetirlo en cada camino de bootstrap().
+  async function loadAllAndApplyTheme(){
+    await loadAll();
+    if(state.favoriteId && K.store.teamById[state.favoriteId]){
+      K.applyTeamTheme(K.store.teamById[state.favoriteId].color);
+    }
+  }
+
   async function bootstrap(){
     K.watchScheme();
     buildNav();
     registerHooks();
     wireEvents();
+    App.auth.init();
     state.favoriteId = App.storage.getFavorite();
     // Restaura la vista donde el usuario estaba antes del refresco (o Resumen
     // si es la primera visita). Pinta el shell de inmediato con lo que haya
-    // en el store (vacío al inicio) para que nunca haya pantalla en blanco.
+    // en el store (vacío al inicio) para que nunca haya pantalla en blanco
+    // detrás de la pantalla de login.
     var restored = App.storage.getLastView();
     go(restored && App.views[restored] ? restored : 'inicio');
-    await loadAll();         // carga datos y refresca la vista
-    // Aplica tema del favorito recuperado una vez que hay equipos.
-    if(state.favoriteId && K.store.teamById[state.favoriteId]){
-      K.applyTeamTheme(K.store.teamById[state.favoriteId].color);
+
+    // Sistema de login: sin token válido no se pide ni un solo /get/*. Si ya
+    // hay uno guardado (sesión previa en este navegador, típico tras F5) se
+    // salta la pantalla y se carga directo; si no, hay que loguear primero
+    // -ya sea por primera vez ("new") o reconectando una identidad guardada
+    // ("returning")- y solo entonces arranca loadAll().
+    if(App.storage.getToken()){
+      await loadAllAndApplyTheme();
+    } else {
+      var hasDevice = !!(App.storage.getDeviceEmail() && App.storage.getDevicePassword());
+      App.auth.show(hasDevice ? 'returning' : 'new', loadAllAndApplyTheme);
     }
   }
 

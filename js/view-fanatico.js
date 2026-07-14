@@ -20,7 +20,7 @@
     var pos = row ? row.position : '—';
     var qualifies = row && row.position<=2;
     var badge = row ? '<span class="badge-qualify '+(qualifies?'is-in':'is-out')+'">'+
-      (qualifies?'✓ Zona de clasificación':'Fuera de zona')+'</span>' : '';
+      (qualifies?(C.icon('check')+' Zona de clasificación'):'Fuera de zona')+'</span>' : '';
     return '<section class="hero fade-in">'+
       '<span class="hero__flag">'+C.teamFlagHtml(team.id)+'</span>'+
       '<div class="hero__meta"><h2 class="hero__team">'+C.esc(team.name)+'</h2>'+
@@ -81,7 +81,7 @@
 
   App.views = App.views || {};
   App.views.fanatico = {
-    title: 'Dashboard del Fanático', desc: 'Elegí tu selección en la barra superior para personalizar el panel.', icon: '⭐',
+    title: 'Dashboard del Fanático', desc: 'Elegí tu selección en la barra superior para personalizar el panel.', icon: 'star',
     render: function (el) {
       var favId = App.app.getFavorite();
 
@@ -97,7 +97,7 @@
       var team = favId ? S.teamById[favId] : null;
       if(!team){
         el.innerHTML = '<div class="card empty-state">'+
-          '<div class="empty-state__icon" aria-hidden="true">⭐</div>'+
+          '<div class="empty-state__icon">'+C.icon('star')+'</div>'+
           '<h3>Elegí tu selección favorita</h3>'+
           '<p class="notice">Usá el selector <strong>«Equipo favorito»</strong> en la barra superior. '+
           'El panel se personaliza y el color de acento cambia según el equipo.</p></div>';
