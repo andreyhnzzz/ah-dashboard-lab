@@ -44,9 +44,25 @@
     var grid = el.querySelector('#agenda-grid');
     var label = el.querySelector('#agenda-date');
     var pos = el.querySelector('#agenda-pos');
+
+    // Reto de resiliencia: si /get/games nunca cargó (ni hay caché), no hay
+    // manera de saber qué fechas son simultáneas. Mostrar esqueletos por
+    // columna en vez de "no hay fechas" (que induciría a pensar que el
+    // torneo no tiene partidos simultáneos, cuando en realidad es un fallo
+    // de red). Nunca pantalla en blanco.
+    if(!S.ready.games){
+      label.textContent = 'Cargando agenda…'; pos.textContent = '';
+      grid.innerHTML = skeletonColumns(3);
+      el.querySelector('#agenda-prev').disabled = true;
+      el.querySelector('#agenda-next').disabled = true;
+      return;
+    }
+
     if(!dates.length){
       grid.innerHTML = '<p class="notice">No hay fechas con partidos simultáneos disponibles.</p>';
       label.textContent = '—'; pos.textContent='';
+      el.querySelector('#agenda-prev').disabled = true;
+      el.querySelector('#agenda-next').disabled = true;
       return;
     }
     if(idx<0){ idx=0; } if(idx>dates.length-1){ idx=dates.length-1; }
@@ -54,7 +70,6 @@
     label.textContent = C.fmtDateLong(date);
     pos.textContent = '('+(idx+1)+' de '+dates.length+')';
 
-    if(!S.ready.games){ grid.innerHTML = skeletonColumns(3); return; }
     var games = S.gamesByDate[date].slice().sort(function(a,b){ return (a.stadium_id||0)-(b.stadium_id||0); });
     grid.innerHTML = '<div class="agenda-grid">'+games.map(matchColumn).join('')+'</div>';
 

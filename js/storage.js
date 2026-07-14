@@ -36,6 +36,10 @@
     },
     setFavorite: function (teamId) { safeSet(S.favorite, String(teamId)); },
 
+    /* --- Última vista visitada (para restaurarla tras un refresco completo) */
+    getLastView: function () { return safeGet(S.lastView); },
+    setLastView: function (id) { safeSet(S.lastView, id); },
+
     /* --- Caché offline por endpoint ---------------------------------------
      * Guarda la última respuesta exitosa junto con una marca de tiempo, para
      * poder mostrar "datos no actualizados" cuando una petición nueva falla.

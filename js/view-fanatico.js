@@ -81,6 +81,16 @@
     title: 'Dashboard del Fanático', desc: 'Elegí tu selección en la barra superior para personalizar el panel.', icon: '⭐',
     render: function (el) {
       var favId = App.app.getFavorite();
+
+      // Hay favorito guardado (sobrevive a un refresco completo) pero el store
+      // todavía no cargó equipos: mostrar esqueleto, NO el estado "sin favorito"
+      // (que sería engañoso — el favorito sí existe, solo falta el dato).
+      if(favId && !S.ready.teams){
+        el.innerHTML = '<div class="skeleton skeleton--tile" style="height:150px"></div>'+
+          '<div class="stat-row">'+C.skeletonCards(4)+'</div>';
+        return;
+      }
+
       var team = favId ? S.teamById[favId] : null;
       if(!team){
         el.innerHTML = '<div class="card empty-state">'+

@@ -54,11 +54,20 @@
     return headers;
   }
 
+  // Nombre corto del endpoint (para acotar la simulación a uno solo).
+  function shortName(endpoint) {
+    for (var key in C.ENDPOINTS) { if (C.ENDPOINTS[key] === endpoint) { return key; } }
+    return null;
+  }
+
   /* --- Transporte: obtiene una Response (API real o mock) ------------------ */
   async function transport(endpoint) {
     if (C.USE_MOCK) {
-      // El mock respeta C.SIMULATE para inyectar 401/429/500/network.
-      return App.mock.respond(endpoint, C.SIMULATE);
+      // El mock respeta C.SIMULATE para inyectar 401/429/500/network, acotado
+      // al endpoint elegido en SIMULATE_TARGET ('all' = todos a la vez).
+      var target = C.SIMULATE_TARGET || 'all';
+      var applies = !C.SIMULATE || target === 'all' || target === shortName(endpoint);
+      return App.mock.respond(endpoint, applies ? C.SIMULATE : '');
     }
     var res = await fetch(C.API_BASE + endpoint, {
       method: 'GET',

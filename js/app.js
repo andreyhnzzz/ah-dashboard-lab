@@ -54,6 +54,12 @@
     el.setAttribute('aria-busy','false');
     view.render(el);
     el.focus({ preventScroll: true });
+
+    // Recuerda la vista activa: si el usuario hace un refresco completo del
+    // navegador (F5) estando en el Dashboard del Fanático, el reto de
+    // resiliencia 2.4 exige volver a mostrarlo (con datos cacheados si hace
+    // falta) en vez de perder el contexto en la pantalla de Resumen.
+    App.storage.setLastView(id);
   }
   App.app = App.app || {};
   App.app.go = go;
@@ -203,7 +209,8 @@
     });
     // Modo demo.
     K.$('toggle-mock').addEventListener('change', function(e){ C.USE_MOCK=e.target.checked; console.info('[config] USE_MOCK =',C.USE_MOCK); loadAll(); });
-    K.$('sim-select').addEventListener('change', function(e){ C.SIMULATE=e.target.value; console.info('[config] SIMULATE =',C.SIMULATE||'(normal)'); });
+    K.$('sim-select').addEventListener('change', function(e){ C.SIMULATE=e.target.value; console.info('[config] SIMULATE =',C.SIMULATE||'(normal)','target=',C.SIMULATE_TARGET); });
+    K.$('sim-target').addEventListener('change', function(e){ C.SIMULATE_TARGET=e.target.value; console.info('[config] SIMULATE_TARGET =',C.SIMULATE_TARGET); });
   }
 
   /* ---------------------- Arranque ---------------------------------------- */
@@ -213,8 +220,11 @@
     registerHooks();
     wireEvents();
     state.favoriteId = App.storage.getFavorite();
-    if(state.favoriteId){ /* el tema se aplica al cargar equipos */ }
-    go('inicio');            // pinta el shell de inmediato
+    // Restaura la vista donde el usuario estaba antes del refresco (o Resumen
+    // si es la primera visita). Pinta el shell de inmediato con lo que haya
+    // en el store (vacío al inicio) para que nunca haya pantalla en blanco.
+    var restored = App.storage.getLastView();
+    go(restored && App.views[restored] ? restored : 'inicio');
     await loadAll();         // carga datos y refresca la vista
     // Aplica tema del favorito recuperado una vez que hay equipos.
     if(state.favoriteId && K.store.teamById[state.favoriteId]){

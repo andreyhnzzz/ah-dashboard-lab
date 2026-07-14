@@ -84,6 +84,15 @@ backoff) y fallo de red (offline con datos cacheados). La consola registra el
 flujo `[resiliencia] …` y la pestaña Network muestra los reintentos con la API
 real.
 
+Un segundo selector, **"Endpoint afectado"**, acota el fallo a un solo recurso
+(`/get/games` por defecto). Esto importa porque 4 de los 5 retos de resiliencia
+del enunciado asumen que **solo `/get/games` falla** mientras equipos, sedes y
+grupos responden con normalidad (p. ej. "si `/get/games` falla, los botones de
+sedes siguen clicables" presupone que `/get/stadiums` sí cargó). Para
+reproducir el reto de cada apartado tal como lo describe el enunciado, dejá el
+endpoint afectado en "Solo /get/games" (valor por defecto) y elegí el status a
+simular.
+
 ## Sobre "frameworks de CSS permitidos"
 
 El enunciado permite frameworks de CSS. Se optó por un **sistema de diseño propio

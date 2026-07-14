@@ -71,8 +71,17 @@
                   <option value="network">Fallo de red (offline)</option>
                 </select>
               </label>
+              <label class="demo__row">Endpoint afectado
+                <select id="sim-target">
+                  <option value="games" selected>Solo /get/games (retos 2.1/2.2/2.3/2.5)</option>
+                  <option value="teams">Solo /get/teams</option>
+                  <option value="groups">Solo /get/groups</option>
+                  <option value="stadiums">Solo /get/stadiums</option>
+                  <option value="all">Todos (apagón total)</option>
+                </select>
+              </label>
               <button class="btn btn--primary demo__reload" id="btn-reload" type="button">Recargar datos</button>
-              <p class="demo__hint">Reproduce en vivo 401/429/500/offline en la consola y la pestaña Network.</p>
+              <p class="demo__hint">Reproduce en vivo 401/429/500/offline en la consola y la pestaña Network. Por defecto solo falla "partidos", tal como asumen los retos de resiliencia del enunciado.</p>
             </div>
           </details>
         </div>

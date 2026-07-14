@@ -46,15 +46,20 @@
     STORAGE: {
       token: 'wc26.jwt',
       favorite: 'wc26.favoriteTeam',
+      lastView: 'wc26.lastView',
       cachePrefix: 'wc26.cache.'
     },
 
     /* --- Simulación de errores (solo para la defensa técnica en DevTools) -----
      * Fuerza un status HTTP en el transporte para demostrar el manejo de errores.
      * Valores: '', '401', '429', '500', '500-twice', '429-once', 'network'.
-     * Editable en vivo desde la barra de herramientas de la interfaz.
+     * SIMULATE_TARGET acota el fallo a UN endpoint ('games' por defecto, ya que
+     * 4 de los 5 retos de resiliencia del enunciado asumen que solo /get/games
+     * falla mientras equipos/sedes/grupos responden con normalidad) o 'all'
+     * para forzar un apagón total. Editable desde la barra de herramientas.
      * ------------------------------------------------------------------------*/
-    SIMULATE: ''
+    SIMULATE: '',
+    SIMULATE_TARGET: 'games'
   };
 
 })(window.App = window.App || {});
