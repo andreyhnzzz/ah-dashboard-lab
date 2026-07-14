@@ -1,0 +1,92 @@
+/* ============================================================================
+ * views.css — Estilos específicos de cada apartado
+ * ==========================================================================*/
+
+/* ---------------------- Inicio / Resumen -------------------------------- */
+.hero-lg {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4);
+  background: linear-gradient(120deg, var(--team-tint-strong), transparent), var(--surface-1);
+  border: 1px solid var(--border); border-left: 6px solid var(--team-accent);
+  border-radius: var(--radius-lg); padding: var(--sp-6);
+}
+.hero-lg__title { margin: 0 0 var(--sp-2); font-size: clamp(1.6rem, 3vw, 2.2rem); }
+.hero-lg__sub { margin: 0; color: var(--text-secondary); max-width: 60ch; }
+.hero-lg__badge { font-size: 3.4rem; }
+
+.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--sp-3); }
+.kpi { background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--sp-4); text-align: center; }
+.kpi__value { display: block; font-size: 2.2rem; font-weight: 700; color: var(--team-accent); }
+.kpi__label { display: block; font-size: var(--fs-xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+
+.module-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--sp-4); }
+.module-card {
+  display: flex; flex-direction: column; gap: 6px; text-align: left;
+  background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius-md);
+  padding: var(--sp-4); cursor: pointer; font: inherit; color: inherit;
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+}
+.module-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-2); border-color: var(--team-accent); }
+.module-card__icon { font-size: 1.8rem; }
+.module-card__title { font-weight: 700; }
+.module-card__desc { font-size: var(--fs-sm); color: var(--text-secondary); }
+
+/* ---------------------- Tour de Sedes ----------------------------------- */
+.sedes-layout { display: grid; grid-template-columns: minmax(260px, 340px) 1fr; gap: var(--sp-5); align-items: start; }
+.venue-list { display: flex; flex-direction: column; gap: var(--sp-2); max-height: 70vh; overflow: auto; padding-right: 4px; }
+.venue { display: flex; align-items: center; gap: var(--sp-3); text-align: left; background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: var(--sp-3); cursor: pointer; font: inherit; color: inherit; transition: border-color var(--transition), background var(--transition); }
+.venue:hover { border-color: var(--team-accent); }
+.venue.is-active { background: var(--team-tint); border-color: var(--team-accent); box-shadow: inset 3px 0 0 var(--team-accent); }
+.venue__pin { font-size: 1.1rem; }
+.venue__name { display: block; font-weight: 700; font-size: var(--fs-sm); }
+.venue__city { display: block; font-size: var(--fs-xs); color: var(--text-muted); }
+.venue-detail { scroll-margin-top: 90px; }
+.placeholder { text-align: center; }
+.vmatch-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
+.vmatch { display: grid; grid-template-columns: 1fr auto auto; gap: var(--sp-3); align-items: center; padding: var(--sp-2) var(--sp-3); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.vmatch__teams { font-size: var(--fs-sm); font-weight: 600; }
+.vmatch__vs { color: var(--text-muted); font-weight: 400; }
+.vmatch__meta { font-size: var(--fs-xs); color: var(--text-muted); }
+.vmatch__score { font-weight: 700; font-variant-numeric: tabular-nums; }
+@media (max-width: 720px) { .sedes-layout { grid-template-columns: 1fr; } .venue-list { max-height: none; } }
+
+/* ---------------------- Agenda Simultánea ------------------------------- */
+.agenda-controls { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); }
+.agenda-controls__center { text-align: center; }
+.agenda-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--sp-4); }
+.acol { display: flex; flex-direction: column; gap: var(--sp-2); background: var(--surface-1); border: 1px solid var(--border); border-top: 3px solid var(--team-accent); border-radius: var(--radius-md); padding: var(--sp-4); }
+.acol__stage { font-size: var(--fs-xs); font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.acol__team { display: flex; align-items: center; gap: var(--sp-2); font-weight: 600; }
+.acol__score { font-size: 1.6rem; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; }
+.acol__pending { text-align: center; padding: var(--sp-1) 0; }
+.acol__venue { font-size: var(--fs-xs); color: var(--text-muted); margin-top: auto; }
+
+/* ---------------------- Timeline Infinito ------------------------------- */
+.tl-head { display: flex; align-items: center; justify-content: space-between; }
+.tl-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
+.tl-item { display: grid; grid-template-columns: 54px 70px 1fr auto; gap: var(--sp-3); align-items: center; background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: var(--sp-3); }
+.tl-item__idx { font-weight: 700; color: var(--team-accent); font-variant-numeric: tabular-nums; }
+.tl-item__date { font-size: var(--fs-xs); color: var(--text-muted); }
+.tl-item__teams { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); font-weight: 600; font-size: var(--fs-sm); }
+.tl-item__score { font-weight: 700; font-variant-numeric: tabular-nums; }
+.tl-item__stage { font-size: var(--fs-xs); text-align: right; }
+.tl-sentinel { text-align: center; padding: var(--sp-4); color: var(--text-muted); font-size: var(--fs-sm); }
+.tl-end { font-weight: 700; color: var(--text-secondary); }
+@media (max-width: 620px) { .tl-item { grid-template-columns: 40px 1fr; } .tl-item__date, .tl-item__stage { display: none; } }
+
+/* ---------------------- Matriz de Enfrentamientos ----------------------- */
+.group-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.group-tab { width: 40px; height: 40px; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); background: var(--surface-1); color: var(--text-secondary); font: inherit; font-weight: 700; cursor: pointer; }
+.group-tab.is-active { background: var(--team-accent); color: var(--team-accent-contrast); border-color: transparent; }
+.matrix-wrap { overflow-x: auto; }
+.matrix { border-collapse: separate; border-spacing: 4px; margin-top: var(--sp-3); }
+.matrix th, .matrix td { padding: 0; }
+.matrix__corner { width: 46px; height: 46px; text-align: center; font-weight: 700; color: var(--team-accent-contrast); background: var(--team-accent); border-radius: var(--radius-sm); }
+.matrix__colh, .matrix__rowh { background: var(--surface-2); border-radius: var(--radius-sm); font-size: var(--fs-xs); color: var(--text-secondary); padding: 4px 8px; white-space: nowrap; }
+.matrix__colh { text-align: center; min-width: 58px; }
+.matrix__colh .matrix__code { display: block; font-size: 0.68rem; color: var(--text-muted); }
+.matrix__rowh { text-align: left; }
+.matrix__cell { width: 58px; height: 46px; text-align: center; background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.matrix__cell.is-diagonal { background: repeating-linear-gradient(45deg, var(--surface-2), var(--surface-2) 5px, var(--surface-1) 5px, var(--surface-1) 10px); color: var(--text-muted); }
+.matrix__cell.is-played { background: var(--team-tint); }
+.matrix__result { font-weight: 700; font-variant-numeric: tabular-nums; font-size: var(--fs-sm); }
+.matrix__legend { margin-top: var(--sp-3); font-size: var(--fs-xs); }
