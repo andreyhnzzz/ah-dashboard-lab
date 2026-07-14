@@ -1,0 +1,97 @@
+/* ============================================================================
+ * layout.css — Shell de la aplicación: sidebar + topbar + área de vistas
+ * (Este proyecto sí permite media queries; se usan para el responsive del shell.)
+ * ==========================================================================*/
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; font-family: var(--font-sans); color: var(--text-primary);
+  background: var(--surface-page); line-height: 1.5; -webkit-font-smoothing: antialiased;
+}
+
+.skip-link {
+  position: absolute; left: -999px; top: 0; z-index: 200;
+  background: var(--team-accent); color: var(--team-accent-contrast);
+  padding: var(--sp-2) var(--sp-4); border-radius: 0 0 var(--radius-sm) 0;
+}
+.skip-link:focus { left: 0; }
+
+.shell { display: grid; grid-template-columns: 250px 1fr; min-height: 100vh; }
+
+/* --- Sidebar --- */
+.sidebar {
+  background: var(--surface-1);
+  border-right: 1px solid var(--border);
+  padding: var(--sp-4);
+  display: flex; flex-direction: column; gap: var(--sp-4);
+  position: sticky; top: 0; align-self: start; height: 100vh;
+}
+.sidebar__brand { display: flex; align-items: center; gap: var(--sp-3); }
+.sidebar__logo {
+  width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center;
+  font-size: 1.4rem; background: var(--team-accent); color: var(--team-accent-contrast);
+  transition: background var(--transition);
+}
+.sidebar__title { display: block; font-size: var(--fs-md); }
+.sidebar__sub { display: block; font-size: var(--fs-xs); color: var(--text-muted); }
+.sidebar__foot { margin-top: auto; font-size: var(--fs-xs); color: var(--text-muted); }
+
+.nav { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.nav__item {
+  width: 100%; display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-3); border: 0; border-radius: var(--radius-sm);
+  background: transparent; color: var(--text-secondary); font: inherit; font-weight: 600;
+  cursor: pointer; text-align: left; transition: background var(--transition), color var(--transition);
+}
+.nav__item:hover { background: var(--surface-2); color: var(--text-primary); }
+.nav__item.is-active { background: var(--team-tint); color: var(--text-primary); box-shadow: inset 3px 0 0 var(--team-accent); }
+.nav__icon { font-size: 1.1rem; width: 1.4rem; text-align: center; }
+
+/* --- Main --- */
+.main { display: flex; flex-direction: column; min-width: 0; }
+
+.topbar {
+  position: sticky; top: 0; z-index: 30;
+  display: flex; align-items: center; gap: var(--sp-4); flex-wrap: wrap;
+  padding: var(--sp-4) var(--sp-5);
+  background: color-mix(in srgb, var(--surface-page) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+@supports not (backdrop-filter: blur(1px)) { .topbar { background: var(--surface-page); } }
+.topbar__heading { min-width: 0; }
+.topbar__title { margin: 0; font-size: var(--fs-xl); font-weight: 700; }
+.topbar__desc { margin: 0; font-size: var(--fs-sm); color: var(--text-muted); }
+.topbar__controls { margin-left: auto; display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap; }
+
+.banners { padding: 0 var(--sp-5); }
+.banners:empty { display: none; }
+
+.view { flex: 1; padding: var(--sp-5); display: flex; flex-direction: column; gap: var(--sp-5); }
+
+.app-footer {
+  padding: var(--sp-4) var(--sp-5); border-top: 1px solid var(--border);
+  font-size: var(--fs-xs); color: var(--text-muted);
+}
+
+.section-title { font-size: var(--fs-md); font-weight: 700; margin: 0 0 var(--sp-3); display: flex; align-items: center; gap: var(--sp-2); }
+.section-title::before { content: ""; width: 4px; height: 1.1em; border-radius: 2px; background: var(--team-accent); transition: background var(--transition); }
+.muted { color: var(--text-muted); font-weight: 500; }
+
+/* --- Responsive: sidebar pasa a barra superior --- */
+@media (max-width: 820px) {
+  .shell { grid-template-columns: 1fr; }
+  .sidebar {
+    position: static; height: auto; flex-direction: row; align-items: center;
+    flex-wrap: wrap; border-right: 0; border-bottom: 1px solid var(--border);
+  }
+  .sidebar__foot { display: none; }
+  .nav { flex-direction: row; flex-wrap: wrap; }
+  .nav__item.is-active { box-shadow: inset 0 -3px 0 var(--team-accent); }
+  .nav__label { font-size: var(--fs-sm); }
+}
+@media (max-width: 560px) {
+  .nav__label { display: none; } /* solo íconos en pantallas muy angostas */
+  .topbar { padding: var(--sp-3) var(--sp-4); }
+  .view { padding: var(--sp-4); }
+}
