@@ -7,7 +7,9 @@
  * lógica de fetch de la lógica de presentación".
  *
  * Cumple la Arquitectura Base de Resiliencia (sección 1.5 del enunciado):
- *   1. JWT: cada petición envía Authorization: Bearer <token>.
+ *   1. JWT: cada petición envía Authorization: Bearer <token> obtenido de la
+ *      API real (POST /auth/register la primera vez, POST /auth/authenticate
+ *      después) — no hay credenciales de curso hardcodeadas.
  *   2. async/await EXCLUSIVO. No hay .then() ni .catch() en ningún punto.
  *   3. 401 → limpia token y avisa a la UI (modal de sesión expirada). Sin reload.
  *   4. Backoff exponencial (1s,2s,4s,8s) para 429 y 500; en 429, countdown visible.
@@ -76,25 +78,68 @@
     return res;
   }
 
-  /* --- Autenticación: obtiene y persiste el JWT --------------------------- */
+  /* --- Autenticación real: registro único + login persistente --------------
+   * La API pública del Mundial 2026 no ofrece credenciales de curso; exige
+   * JWT en cada /get/*. Este navegador se registra una única vez a sí mismo
+   * (POST /auth/register) con una identidad generada localmente, guarda ese
+   * correo/clave en localStorage, y en cada visita posterior reautentica con
+   * POST /auth/authenticate — sin volver a registrarse. El token real dura
+   * 84 días según la documentación de la API.
+   * ------------------------------------------------------------------------*/
+  function randomToken(len) {
+    if (window.crypto && window.crypto.getRandomValues) {
+      var arr = window.crypto.getRandomValues(new Uint32Array(len || 3));
+      return Array.prototype.map.call(arr, function (n) { return n.toString(36); }).join('');
+    }
+    return Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+  }
+
+  async function registerDevice() {
+    var suffix = randomToken();
+    var email = 'dashboard.' + suffix + '@wc26-isw521.local';
+    var password = 'Wc26-' + suffix + '-Aa1';
+    var res = await fetch(C.API_BASE + C.AUTH_REGISTER_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ name: 'Dashboard ISW-521', email: email, password: password })
+    });
+    if (!res.ok) { throw new HttpError(res.status, 'No se pudo registrar el dispositivo en la API'); }
+    var body = await res.json();
+    if (!body.token) { throw new AuthError('El registro no devolvió un token'); }
+    App.storage.setDeviceCredentials(email, password);
+    App.storage.setToken(body.token);
+    return body.token;
+  }
+
+  async function loginDevice(email, password) {
+    var res = await fetch(C.API_BASE + C.AUTH_LOGIN_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ email: email, password: password })
+    });
+    if (!res.ok) { throw new HttpError(res.status, 'Fallo de autenticación'); }
+    var body = await res.json();
+    if (!body.token) { throw new AuthError('El login no devolvió un token'); }
+    App.storage.setToken(body.token);
+    return body.token;
+  }
+
   async function authenticate() {
     if (C.USE_MOCK) {
-      // Token simulado para poder ejercitar el flujo completo sin backend real.
+      // Token simulado: permite ejercitar el flujo completo (y demostrar
+      // 401/429/500) sin depender de la disponibilidad de la API real.
       var fakeToken = 'mock.jwt.' + Date.now();
       App.storage.setToken(fakeToken);
       return fakeToken;
     }
-    var res = await fetch(C.API_BASE + C.AUTH_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify(C.AUTH_CREDENTIALS)
-    });
-    if (!res.ok) { throw new HttpError(res.status, 'Fallo de autenticación'); }
-    var body = await res.json();
-    var token = body.token || body.access_token || body.jwt;
-    if (!token) { throw new AuthError('La respuesta de login no contiene token'); }
-    App.storage.setToken(token);
-    return token;
+    var email = App.storage.getDeviceEmail();
+    var password = App.storage.getDevicePassword();
+    if (email && password) {
+      // Este navegador ya tiene una identidad registrada: solo reautentica.
+      return await loginDevice(email, password);
+    }
+    // Primera vez en este navegador: se registra una identidad nueva.
+    return await registerDevice();
   }
   App.api.authenticate = authenticate;
 

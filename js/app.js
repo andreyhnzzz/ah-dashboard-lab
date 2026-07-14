@@ -157,7 +157,9 @@
     if(!K.store.teamsSorted.length || sel.options.length>1){ return; }
     K.store.teamsSorted.forEach(function(t){
       var o=document.createElement('option');
-      o.value=t.id; o.textContent=t.flag+'  '+t.name+'  (Grupo '+t.group+')';
+      // <option> no admite HTML/<img>, así que el código FIFA reemplaza al
+      // emoji/URL de bandera (t.flag ahora es una URL real, no renderizable aquí).
+      o.value=t.id; o.textContent=(t.code?t.code+' · ':'')+t.name+'  (Grupo '+t.group+')';
       if(t.id===state.favoriteId){ o.selected=true; }
       sel.appendChild(o);
     });
@@ -190,7 +192,9 @@
     });
     // Favorito global.
     K.$('fav-select').addEventListener('change', function(e){
-      setFavorite(parseInt(e.target.value,10) || null);
+      // Los ids de equipo son strings (adaptTeam los normaliza con String()),
+      // así que NO se debe parseInt() aquí: rompería el lookup en teamById.
+      setFavorite(e.target.value || null);
     });
     // Reintento / recarga.
     K.$('btn-retry').addEventListener('click', function(){ K.ui.hideError(); loadAll(); });

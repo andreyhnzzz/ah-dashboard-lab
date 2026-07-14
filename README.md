@@ -36,8 +36,59 @@ HTTP para evitar CORS:
 python3 -m http.server 8099   # → http://localhost:8099/index.html
 ```
 
-Arranca en **modo mock** (dataset local). Para la API real, desmarcá "Datos
-locales (mock)" en *Modo demo* o poné `USE_MOCK:false` en `js/config.js`.
+**Arranca consumiendo la API real** del Mundial 2026 (`https://worldcup26.ir`,
+`USE_MOCK:false` en `js/config.js`) — los datos que ves (equipos, sedes,
+grupos, calendario) son los reales de la API pública, no inventados ni
+quemados en el código. Solo para trabajar sin conexión o para reproducir en
+vivo los casos 401/429/500/offline durante la defensa técnica conviene
+activar "Datos locales (mock)" en el panel **Modo demo** de la barra
+superior — ver más abajo.
+
+### Autenticación contra la API real
+
+La API pública no entrega credenciales de curso: exige JWT en cada `/get/*`.
+La app resuelve esto registrando **una identidad de dispositivo** la primera
+vez que corre en un navegador:
+
+1. `POST /auth/register` con un email/contraseña generados localmente
+   (`js/api.js → registerDevice()`), guardados después en `localStorage`
+   (nunca se muestran en la UI ni se envían a nadie más).
+2. En cada visita siguiente, `POST /auth/authenticate` reutiliza esas mismas
+   credenciales (`loginDevice()`) — el token real dura 84 días según la
+   documentación de la API, así que no hace falta re-registrarse.
+3. Cada `/get/*` viaja con `Authorization: Bearer <token>`. Un 401 limpia el
+   token y dispara el modal de reautenticación (sin `location.reload()`).
+
+### Límite de esta entrega: no se pudo probar en vivo contra `worldcup26.ir`
+
+El entorno donde se construyó y verificó este proyecto **no tiene salida de
+red hacia `worldcup26.ir`** (ni por `curl`, ni por `fetch` en un navegador
+headless, ni por un navegador con extensión conectada) — cualquier intento
+devuelve un fallo de conexión a nivel de red, no un error de la aplicación.
+Por eso:
+
+- Los endpoints, el formato de las respuestas y el flujo de auth se
+  implementaron **contra la documentación oficial** del backend (repositorio
+  del autor de la API, sección "API Reference" del README), no contra
+  capturas propias de tráfico real.
+- El dataset de `js/mock-data.js` se regeneró para **espejar exactamente**
+  esa misma forma de la API real (ids como string, `finished:'TRUE'/'FALSE'`,
+  fechas `MM/DD/YYYY`, `games` envuelto en `{games:[...]}`, etc.), de modo que
+  el **mismo adaptador** en `common.js` sirve a ambos orígenes — no hay dos
+  rutas de código distintas para "real" y "mock".
+- Se verificó con Playwright (Chromium headless) que: (a) al cargar con
+  `USE_MOCK:false` la app efectivamente intenta `fetch` contra
+  `https://worldcup26.ir` (confirmado por los intentos de red en la consola),
+  y (b) con `USE_MOCK:true` las 6 vistas navegan sin errores, el favorito y
+  las banderas (`<img>`, ya no texto/emoji) se renderizan correctamente con
+  ids de tipo string, usando el mismo código que consumiría la API real.
+- **Recomendación**: antes de entregar/defender, abrí la app en un navegador
+  con acceso real a internet (con `USE_MOCK` desmarcado, que es el estado por
+  defecto) y confirmá en la pestaña *Network* que `/auth/register` (o
+  `/auth/authenticate`) y los cuatro `/get/*` devuelven `200` con datos
+  reales. Si la API cambiara algún nombre de campo respecto a la
+  documentación consultada, el único lugar a ajustar es el adaptador en
+  `js/common.js` (`adaptTeam`, `adaptStadium`, `adaptGame`, `setGroups`).
 
 ## Estructura
 
@@ -78,11 +129,12 @@ Prohibiciones respetadas: sin `alert()`, sin `.then()/.catch()`, sin `reload()`.
 
 ## Modo demo (defensa técnica)
 
-En la barra superior, *Modo demo* permite forzar respuestas para reproducir en
-vivo en DevTools: `401`, `429` (con countdown), `500`, `500 ×2` (se recupera con
-backoff) y fallo de red (offline con datos cacheados). La consola registra el
-flujo `[resiliencia] …` y la pestaña Network muestra los reintentos con la API
-real.
+En la barra superior, *Modo demo* permite activar "Datos locales (mock)"
+—desactivado por defecto, ya que por defecto se usa la API real— y forzar
+respuestas para reproducir en vivo en DevTools: `401`, `429` (con countdown),
+`500`, `500 ×2` (se recupera con backoff) y fallo de red (offline con datos
+cacheados). La consola registra el flujo `[resiliencia] …` y la pestaña
+Network muestra los reintentos.
 
 Un segundo selector, **"Endpoint afectado"**, acota el fallo a un solo recurso
 (`/get/games` por defecto). Esto importa porque 4 de los 5 retos de resiliencia

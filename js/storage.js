@@ -29,11 +29,21 @@
     setToken: function (token) { safeSet(S.token, token); },
     clearToken: function () { safeRemove(S.token); },
 
-    /* --- Equipo favorito (sobrevive a un refresco completo) ---------------- */
-    getFavorite: function () {
-      var raw = safeGet(S.favorite);
-      return raw == null ? null : parseInt(raw, 10);
+    /* --- Identidad de dispositivo (para /auth/register una sola vez y luego
+     * /auth/authenticate en cada visita — ver api.js). La API real no ofrece
+     * credenciales de curso; cada navegador se registra una vez a sí mismo
+     * con un correo/clave generados localmente y los reutiliza siempre. ---- */
+    getDeviceEmail: function () { return safeGet(S.deviceEmail); },
+    getDevicePassword: function () { return safeGet(S.devicePassword); },
+    setDeviceCredentials: function (email, password) {
+      safeSet(S.deviceEmail, email); safeSet(S.devicePassword, password);
     },
+
+    /* --- Equipo favorito (sobrevive a un refresco completo) ----------------
+     * Se guarda y devuelve como STRING: los ids de la API real son strings
+     * ("1".."48"), y normalizar todo a string evita bugs de comparación
+     * (1 !== "1") entre team.id, home_team_id, stadium_id, etc. ------------ */
+    getFavorite: function () { return safeGet(S.favorite); },
     setFavorite: function (teamId) { safeSet(S.favorite, String(teamId)); },
 
     /* --- Última vista visitada (para restaurarla tras un refresco completo) */

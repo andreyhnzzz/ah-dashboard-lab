@@ -46,7 +46,7 @@
     var teams = teamsOfGroup(letter);
     if(!teams.length){ return '<p class="notice">No hay datos del grupo '+C.esc(letter)+'.</p>'; }
     var head = '<tr><th scope="col" class="matrix__corner">'+C.esc(letter)+'</th>'+
-      teams.map(function(t){ return '<th scope="col" class="matrix__colh" title="'+C.esc(t.name)+'">'+C.esc(t.flag)+'<span class="matrix__code">'+C.esc(t.code)+'</span></th>'; }).join('')+'</tr>';
+      teams.map(function(t){ return '<th scope="col" class="matrix__colh" title="'+C.esc(t.name)+'">'+C.teamFlagHtml(t.id)+'<span class="matrix__code">'+C.esc(t.code)+'</span></th>'; }).join('')+'</tr>';
     var body = teams.map(function(rowT){
       var cells = teams.map(function(colT){
         if(rowT.id===colT.id){ return '<td class="matrix__cell is-diagonal" aria-disabled="true"><span aria-hidden="true">—</span><span class="visually-hidden">mismo equipo</span></td>'; }
@@ -54,7 +54,7 @@
         return '<td class="matrix__cell" id="'+id+'" data-row="'+rowT.id+'" data-col="'+colT.id+'">'+
           '<span class="tag tag--pending">Pendiente</span></td>';
       }).join('');
-      return '<tr><th scope="row" class="matrix__rowh" title="'+C.esc(rowT.name)+'">'+C.esc(rowT.flag)+' '+C.esc(rowT.code)+'</th>'+cells+'</tr>';
+      return '<tr><th scope="row" class="matrix__rowh" title="'+C.esc(rowT.name)+'">'+C.teamFlagHtml(rowT.id)+' '+C.esc(rowT.code)+'</th>'+cells+'</tr>';
     }).join('');
     return '<div class="matrix-wrap"><table class="matrix"><caption class="visually-hidden">Resultados del grupo '+C.esc(letter)+
       '. Fila contra columna.</caption><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>'+

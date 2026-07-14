@@ -28,9 +28,9 @@
       : '<div class="acol__pending"><span class="tag tag--pending">Pendiente</span></div>';
     return '<article class="acol">'+
       '<header class="acol__stage">'+C.esc(stage)+'</header>'+
-      '<div class="acol__team">'+C.teamFlag(m.home_team)+' <span>'+C.esc(C.teamName(m.home_team))+'</span></div>'+
+      '<div class="acol__team">'+C.teamFlagHtml(m.home_team, m.home_team_label)+' <span>'+C.esc(C.teamName(m.home_team, m.home_team_label))+'</span></div>'+
       center+
-      '<div class="acol__team">'+C.teamFlag(m.away_team)+' <span>'+C.esc(C.teamName(m.away_team))+'</span></div>'+
+      '<div class="acol__team">'+C.teamFlagHtml(m.away_team, m.away_team_label)+' <span>'+C.esc(C.teamName(m.away_team, m.away_team_label))+'</span></div>'+
       '<footer class="acol__venue">'+(st?('🏟️ '+C.esc(st.name)+' · '+C.esc(st.city)):'Sede por confirmar')+'</footer>'+
       '</article>';
   }

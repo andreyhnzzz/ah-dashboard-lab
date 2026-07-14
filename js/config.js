@@ -4,29 +4,40 @@
  * Un único lugar para ajustar el origen de datos, los endpoints, las claves de
  * localStorage y los parámetros del backoff exponencial. Mantener esto separado
  * hace el código legible y fácil de mantener (una sola fuente de verdad).
+ *
+ * Endpoints y forma de las respuestas verificados contra la documentación
+ * oficial del backend que sirve worldcup26.ir (repositorio del autor de la
+ * API, sección "API Reference" — ver README del proyecto para el detalle):
+ * base https://worldcup26.ir, JWT Bearer en cada /get/*, registro/login en
+ * /auth/register y /auth/authenticate, token válido 84 días.
  * ==========================================================================*/
 (function (App) {
   'use strict';
 
   App.config = {
     /* --- Origen de datos -----------------------------------------------------
-     * USE_MOCK = true  → usa el dataset local (js/mock-data.js). Permite ejecutar
-     *                    y calificar la app sin credenciales de la API real.
-     * USE_MOCK = false → consume la API real vía fetch (requiere API_BASE + login).
-     * Se puede alternar en vivo desde la barra de herramientas de la interfaz.
+     * USE_MOCK = false → consume la API REAL del Mundial 2026 (worldcup26.ir)
+     *                    vía fetch. Es el modo por defecto: los datos que ve
+     *                    el usuario son los reales de la API, no inventados.
+     * USE_MOCK = true  → usa el dataset local de ejemplo (js/mock-data.js),
+     *                    con el MISMO formato de la API real, para poder
+     *                    demostrar en DevTools los casos 401/429/500/offline
+     *                    sin depender de la disponibilidad de la API pública
+     *                    ni de su límite de tasa durante la defensa técnica.
+     * Se alterna en vivo desde "Modo demo" en la barra superior.
      * ------------------------------------------------------------------------*/
-    USE_MOCK: true,
+    USE_MOCK: false,
 
-    // Base de la API REST pública del Mundial 2026.
+    // Base de la API REST pública y gratuita del Mundial 2026 (sin API key).
     API_BASE: 'https://worldcup26.ir',
 
-    // Endpoint de autenticación (devuelve un JWT). El nombre exacto puede variar
-    // en la API real; se centraliza aquí para ajustarlo en un solo punto.
-    AUTH_ENDPOINT: '/auth/login',
-
-    // Credenciales de demostración. En producción NUNCA se hardcodean; aquí se
-    // usan solo para poder obtener un token contra la API de práctica del curso.
-    AUTH_CREDENTIALS: { username: 'demo', password: 'demo' },
+    /* --- Autenticación --------------------------------------------------------
+     * La API exige JWT en cada /get/*. No hay credenciales fijas de curso: la
+     * app genera UNA identidad de dispositivo la primera vez (POST /auth/register)
+     * y la reutiliza en cada visita (POST /auth/authenticate) — ver api.js.
+     * ------------------------------------------------------------------------*/
+    AUTH_REGISTER_ENDPOINT: '/auth/register',
+    AUTH_LOGIN_ENDPOINT: '/auth/authenticate',
 
     // Endpoints de datos que consume el Dashboard integral (todos los apartados).
     ENDPOINTS: {
@@ -45,13 +56,17 @@
     // Claves de localStorage (namespaced para no colisionar con otras apps).
     STORAGE: {
       token: 'wc26.jwt',
+      deviceEmail: 'wc26.deviceEmail',
+      devicePassword: 'wc26.devicePassword',
       favorite: 'wc26.favoriteTeam',
       lastView: 'wc26.lastView',
       cachePrefix: 'wc26.cache.'
     },
 
     /* --- Simulación de errores (solo para la defensa técnica en DevTools) -----
-     * Fuerza un status HTTP en el transporte para demostrar el manejo de errores.
+     * Fuerza un status HTTP en el transporte MOCK para demostrar el manejo de
+     * errores sin depender de la disponibilidad real de la API. Solo tiene
+     * efecto cuando "Modo demo → Datos locales" está activo.
      * Valores: '', '401', '429', '500', '500-twice', '429-once', 'network'.
      * SIMULATE_TARGET acota el fallo a UN endpoint ('games' por defecto, ya que
      * 4 de los 5 retos de resiliencia del enunciado asumen que solo /get/games

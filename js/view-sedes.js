@@ -22,8 +22,8 @@
     var score = played ? (m.home_score+' – '+m.away_score) : '<span class="tag tag--pending">Pendiente</span>';
     var stage = m.stage==='group' ? ('Grupo '+m.group) : (m.stage_label||'Eliminatoria');
     return '<li class="vmatch">'+
-      '<span class="vmatch__teams">'+C.teamFlag(m.home_team)+' '+C.esc(C.teamName(m.home_team))+
-        ' <span class="vmatch__vs">vs</span> '+C.esc(C.teamName(m.away_team))+' '+C.teamFlag(m.away_team)+'</span>'+
+      '<span class="vmatch__teams">'+C.teamFlagHtml(m.home_team, m.home_team_label)+' '+C.esc(C.teamName(m.home_team, m.home_team_label))+
+        ' <span class="vmatch__vs">vs</span> '+C.esc(C.teamName(m.away_team, m.away_team_label))+' '+C.teamFlagHtml(m.away_team, m.away_team_label)+'</span>'+
       '<span class="vmatch__meta">'+C.esc(stage)+' · '+C.esc(C.fmtDate(m.local_date))+'</span>'+
       '<span class="vmatch__score">'+score+'</span></li>';
   }
@@ -63,7 +63,7 @@
       var buttons = el.querySelectorAll('.venue');
       buttons.forEach(function(btn){
         btn.addEventListener('click', function(){
-          var id = parseInt(btn.getAttribute('data-stadium'),10);
+          var id = btn.getAttribute('data-stadium'); // stadiumById está indexado por string
           // Estado activo (accesible con aria-pressed).
           buttons.forEach(function(b){ b.classList.remove('is-active'); b.setAttribute('aria-pressed','false'); });
           btn.classList.add('is-active'); btn.setAttribute('aria-pressed','true');

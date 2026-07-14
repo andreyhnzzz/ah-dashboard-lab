@@ -28,9 +28,9 @@
       '<div class="tl-item__idx">#'+n+'</div>'+
       '<div class="tl-item__date">'+C.esc(C.fmtDate(m.local_date))+'</div>'+
       '<div class="tl-item__teams">'+
-        '<span>'+C.teamFlag(m.home_team)+' '+C.esc(C.teamName(m.home_team))+'</span>'+
+        '<span>'+C.teamFlagHtml(m.home_team, m.home_team_label)+' '+C.esc(C.teamName(m.home_team, m.home_team_label))+'</span>'+
         '<span class="tl-item__score">'+score+'</span>'+
-        '<span>'+C.esc(C.teamName(m.away_team))+' '+C.teamFlag(m.away_team)+'</span>'+
+        '<span>'+C.esc(C.teamName(m.away_team, m.away_team_label))+' '+C.teamFlagHtml(m.away_team, m.away_team_label)+'</span>'+
       '</div>'+
       '<div class="tl-item__stage muted">'+C.esc(stage)+'</div>'+
     '</li>';
