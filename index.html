@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mundial 2026 · Dashboard Integral</title>
+  <meta name="description" content="Dashboard integral del Mundial 2026: tour de sedes, agenda simultánea, timeline infinito, dashboard del fanático y matriz de enfrentamientos.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>%E2%9A%BD</text></svg>">
+
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/views.css">
+</head>
+<body>
+  <a class="skip-link" href="#view">Saltar al contenido principal</a>
+
+  <div class="shell">
+    <!-- ===================== Barra lateral de navegación ===================== -->
+    <aside class="sidebar" aria-label="Navegación principal">
+      <div class="sidebar__brand">
+        <span class="sidebar__logo" aria-hidden="true">⚽</span>
+        <div>
+          <strong class="sidebar__title">Mundial 2026</strong>
+          <span class="sidebar__sub">Dashboard Integral</span>
+        </div>
+      </div>
+      <nav>
+        <ul class="nav" id="nav" role="list">
+          <!-- app.js inyecta los ítems de navegación -->
+        </ul>
+      </nav>
+      <p class="sidebar__foot">ISW-521 · Categoría B<br>Todos los apartados</p>
+    </aside>
+
+    <!-- ===================== Área principal ===================== -->
+    <div class="main">
+      <!-- Topbar sticky: título de vista + favorito global + estado + demo -->
+      <header class="topbar">
+        <div class="topbar__heading">
+          <h1 class="topbar__title" id="view-title">Resumen</h1>
+          <p class="topbar__desc" id="view-desc">Panorama general del torneo.</p>
+        </div>
+
+        <div class="topbar__controls">
+          <span id="conn-pill" class="pill pill--ok" role="status" aria-live="polite">
+            <span class="pill__dot" aria-hidden="true"></span><span id="conn-text">En línea</span>
+          </span>
+
+          <div class="field">
+            <label for="fav-select" class="field__label">Equipo favorito</label>
+            <select id="fav-select" aria-describedby="fav-help">
+              <option value="">— Ninguno —</option>
+            </select>
+            <span id="fav-help" class="visually-hidden">Define el color de acento del panel y personaliza el dashboard del fanático.</span>
+          </div>
+
+          <details class="demo">
+            <summary class="btn btn--ghost" title="Herramientas para la defensa técnica">Modo demo</summary>
+            <div class="demo__panel">
+              <label class="demo__row">
+                <input type="checkbox" id="toggle-mock" checked> Datos locales (mock)
+              </label>
+              <label class="demo__row">Simular respuesta
+                <select id="sim-select">
+                  <option value="">Normal (200 OK)</option>
+                  <option value="401">401 · Sesión expirada</option>
+                  <option value="429">429 · Límite de tasa (+countdown)</option>
+                  <option value="500">500 · Error de servidor</option>
+                  <option value="500-twice">500 ×2 y se recupera (backoff)</option>
+                  <option value="network">Fallo de red (offline)</option>
+                </select>
+              </label>
+              <button class="btn btn--primary demo__reload" id="btn-reload" type="button">Recargar datos</button>
+              <p class="demo__hint">Reproduce en vivo 401/429/500/offline en la consola y la pestaña Network.</p>
+            </div>
+          </details>
+        </div>
+      </header>
+
+      <!-- Banners globales de estado (aria-live) -->
+      <div class="banners">
+        <div id="banner-retry" class="banner banner--retry" role="status" aria-live="polite" hidden>
+          <span class="banner__icon" aria-hidden="true">⏳</span><span id="banner-retry-text">Reintentando…</span>
+        </div>
+        <div id="banner-stale" class="banner banner--stale" role="status" aria-live="polite" hidden>
+          <span class="banner__icon" aria-hidden="true">⚠️</span><span id="banner-stale-text">Datos no actualizados.</span>
+        </div>
+        <div id="banner-error" class="banner banner--error" role="alert" hidden>
+          <span class="banner__icon" aria-hidden="true">⛔</span><span id="banner-error-text">No se pudieron cargar los datos.</span>
+          <button class="btn btn--primary" id="btn-retry" type="button">Reintentar</button>
+        </div>
+      </div>
+
+      <!-- Contenedor de vistas (cada apartado se renderiza aquí) -->
+      <main id="view" class="view" tabindex="-1" aria-live="polite" aria-busy="false"></main>
+
+      <footer class="app-footer">
+        <p>Proyecto Final ISW-521 · Categoría B · Interfaces Interactivas y DOM Avanzado · Datos: API del Mundial 2026 (worldcup26.ir).</p>
+      </footer>
+    </div>
+  </div>
+
+  <!-- ===================== Modal de sesión expirada (401) ===================== -->
+  <div id="session-modal" class="modal-backdrop" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-text">
+      <div class="modal__icon" aria-hidden="true">🔒</div>
+      <h2 class="modal__title" id="modal-title">Tu sesión expiró</h2>
+      <p class="modal__text" id="modal-text">El token de acceso ya no es válido (error 401). Reautenticate para continuar; no perdés tu configuración.</p>
+      <button class="btn btn--primary" id="btn-reauth" type="button">Reautenticarme</button>
+    </div>
+  </div>
+
+  <!-- ===================== Scripts (orden de dependencias) ===================== -->
+  <script src="js/config.js"></script>
+  <script src="js/mock-data.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/view-inicio.js"></script>
+  <script src="js/view-sedes.js"></script>
+  <script src="js/view-agenda.js"></script>
+  <script src="js/view-timeline.js"></script>
+  <script src="js/view-fanatico.js"></script>
+  <script src="js/view-matriz.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
