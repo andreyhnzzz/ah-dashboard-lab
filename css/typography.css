@@ -1,0 +1,30 @@
+/* ============================================================================
+ * typography.css — Aplicación de la tipografía de marca (cargado DE ÚLTIMO)
+ * ----------------------------------------------------------------------------
+ * TODOS los titulares, marcadores, etiquetas en mayúscula y elementos de
+ * identidad usan la fuente display (Fredoka, el pariente libre más cercano al
+ * "FWC26 Event Typeface"). El cuerpo usa Noto Sans (--font-sans, en el body).
+ *
+ * Se carga al final de la cadena de estilos a propósito: varios componentes
+ * usan la abreviatura `font: inherit` (p. ej. .btn, .group-tab, .venue), que
+ * reinicia font-family; al declararse aquí, con la misma especificidad pero
+ * más tarde en el cascade, esta asignación gana y ningún control cae en la
+ * fuente del sistema —el contraste "Noto Sans + system-ui" era justo lo que
+ * se veía mal—. Fredoka pesa hasta 700; se normaliza a ese máximo para no
+ * pedir un peso inexistente (que el navegador "faux-boldearía" y ensuciaría).
+ * ==========================================================================*/
+.sidebar__title, .sidebar__sub, .topbar__title, .section-title,
+.hero-lg__title, .kpi__value, .kpi__label, .module-card__title, .venue__name,
+.acol__stage, .tl-item__idx, .group-tab, .matrix__corner, .matrix__colh,
+.matrix__rowh, .matrix__result, .scorecard__side, .scorecard__capsule,
+.scorecard__status, .scorecard__vs, .nav__label, .auth-card__title,
+.auth-field__label, .tag, .pill, .btn, .pos-pill,
+.fan-hero__name, .fan-hero__group, .fan-hero__badge, .fan-hero__pos-num,
+.statbars__team, .statbars__vs, .statbar__val, .statbar__label {
+  font-family: var(--font-display);
+}
+.topbar__title, .hero-lg__title, .section-title, .sidebar__title,
+.matrix__result, .scorecard__capsule, .kpi__value, .fan-hero__name,
+.fan-hero__pos-num, .tl-item__idx, .group-tab, .matrix__corner {
+  font-weight: 700;
+}
