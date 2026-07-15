@@ -8,89 +8,105 @@
   <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
   <link rel="icon" type="image/png" sizes="64x64" href="assets/favicon-64.png">
 
+  <!-- Precarga de los pesos de titular más usados para evitar el "flash" de
+       fuente del sistema antes de que cargue la tipografía de marca. -->
+  <link rel="preload" href="assets/fonts/fredoka-700.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/noto-sans-400.woff2" as="font" type="font/woff2" crossorigin>
+
+  <link rel="stylesheet" href="css/fonts.css">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/views.css">
   <link rel="stylesheet" href="css/auth.css">
+  <link rel="stylesheet" href="css/typography.css">
 </head>
 <body>
   <!-- ===================== Sprite de íconos SVG (sin emojis) =====================
-       Símbolos reutilizables vía <svg class="icon"><use href="#icon-x"/></svg>.
-       Trazo (stroke) 24x24, currentColor, para heredar el color del contexto. -->
-  <svg xmlns="http://www.w3.org/2000/svg" class="icon-sprite" aria-hidden="true" focusable="false">
+       Set unificado, grid 24×24, trazo 1.75 con caps/joins redondeados que se
+       heredan de la raíz del sprite (propiedades SVG heredables) para garantizar
+       consistencia total entre íconos. Uso: <svg class="icon"><use href="#icon-x"/></svg>. -->
+  <svg xmlns="http://www.w3.org/2000/svg" class="icon-sprite" aria-hidden="true" focusable="false"
+       fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
     <defs>
       <!-- Inicio -->
       <symbol id="icon-home" viewBox="0 0 24 24">
-        <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M4 11.5 12 4l8 7.5M6 10v9.5h12V10"/>
-        <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M9.75 19.5v-6h4.5v6"/>
+        <path d="M3.6 11.5 12 4l8.4 7.5"/>
+        <path d="M5.75 9.8v9.45a.8.8 0 0 0 .8.8h10.9a.8.8 0 0 0 .8-.8V9.8"/>
+        <path d="M9.8 20V14.2a.7.7 0 0 1 .7-.7h3a.7.7 0 0 1 .7.7V20"/>
       </symbol>
       <!-- Estadio (sedes) -->
       <symbol id="icon-stadium" viewBox="0 0 24 24">
-        <ellipse cx="12" cy="12.5" rx="9" ry="5.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
-        <ellipse cx="12" cy="12.5" rx="5.2" ry="3.1" fill="none" stroke="currentColor" stroke-width="1.3"/>
-        <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M4.6 9.3v6.4M19.4 9.3v6.4"/>
+        <path d="M4.5 8.5v7c0 1.9 3.36 3.4 7.5 3.4s7.5-1.5 7.5-3.4v-7"/>
+        <ellipse cx="12" cy="8.5" rx="7.5" ry="3.4"/>
+        <path d="M9 8.2v-2a.6.6 0 0 1 .6-.6h4.8a.6.6 0 0 1 .6.6v2"/>
       </symbol>
       <!-- Calendario (agenda) -->
       <symbol id="icon-calendar" viewBox="0 0 24 24">
-        <rect x="3.75" y="5" width="16.5" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/>
-        <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M3.75 9.5h16.5M8 3.25v3M16 3.25v3"/>
-        <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M7.5 13.5h3M13.5 13.5h3M7.5 17h3M13.5 17h3"/>
+        <rect x="3.75" y="5.25" width="16.5" height="15" rx="2.4"/>
+        <path d="M3.75 9.75h16.5M8 3.5v3.4M16 3.5v3.4"/>
+        <path d="M7.6 13.4h2M11 13.4h2M14.4 13.4h2M7.6 16.7h2M11 16.7h2M14.4 16.7h2"/>
       </symbol>
       <!-- Infinito (timeline) -->
       <symbol id="icon-infinity" viewBox="0 0 24 24">
-        <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M7 9.5c-2.2 0-3.75 1.6-3.75 3.5S4.8 16.5 7 16.5c3 0 4-6.5 8-6.5 2.2 0 3.75 1.6 3.75 3.5S17.2 16.5 15 16.5c-4 0-5-6.5-8-6.5z"/>
+        <path d="M6.7 8.9a4.1 4.1 0 1 0 0 6.2c1.9-1.7 2.7-4.4 5.3-4.4M17.3 15.1a4.1 4.1 0 1 0 0-6.2C15.4 10.6 14.6 13.3 12 13.3"/>
       </symbol>
       <!-- Estrella (fanático) -->
       <symbol id="icon-star" viewBox="0 0 24 24">
-        <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" d="M12 3.5l2.62 5.53 5.98.65-4.45 4.2 1.2 6.12L12 16.94l-5.35 3.06 1.2-6.12-4.45-4.2 5.98-.65L12 3.5z"/>
+        <path d="M12 3.6l2.55 5.17 5.7.83-4.13 4.02.98 5.68L12 16.6l-5.1 2.7.98-5.68L3.75 9.6l5.7-.83z"/>
       </symbol>
       <!-- Cuadrícula (matriz) -->
       <symbol id="icon-grid" viewBox="0 0 24 24">
-        <rect x="3.75" y="3.75" width="7.2" height="7.2" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6"/>
-        <rect x="13.05" y="3.75" width="7.2" height="7.2" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6"/>
-        <rect x="3.75" y="13.05" width="7.2" height="7.2" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6"/>
-        <rect x="13.05" y="13.05" width="7.2" height="7.2" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6"/>
+        <rect x="4" y="4" width="7" height="7" rx="1.6"/>
+        <rect x="13" y="4" width="7" height="7" rx="1.6"/>
+        <rect x="4" y="13" width="7" height="7" rx="1.6"/>
+        <rect x="13" y="13" width="7" height="7" rx="1.6"/>
       </symbol>
       <!-- Pin de mapa (sede) -->
       <symbol id="icon-pin" viewBox="0 0 24 24">
-        <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" d="M12 21s-6.5-6.02-6.5-11A6.5 6.5 0 0 1 18.5 10c0 4.98-6.5 11-6.5 11z"/>
-        <circle cx="12" cy="10" r="2.2" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M12 20.5c3.5-3.9 6.25-7.1 6.25-10.5a6.25 6.25 0 1 0-12.5 0c0 3.4 2.75 6.6 6.25 10.5z"/>
+        <circle cx="12" cy="10" r="2.35"/>
       </symbol>
       <!-- Trofeo (bandera no disponible) -->
       <symbol id="icon-trophy" viewBox="0 0 24 24">
-        <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M7 4h10v4.2c0 2.9-2.24 5.3-5 5.3s-5-2.4-5-5.3V4z"/>
-        <path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" d="M7 5.5H4.6c0 2.6 1.5 4.3 3.5 4.6M17 5.5h2.4c0 2.6-1.5 4.3-3.5 4.6"/>
-        <path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" d="M12 13.5v3.2M8.7 20h6.6M9.4 20c0-1.7.9-2.7 2.6-2.7s2.6 1 2.6 2.7"/>
+        <path d="M7 4.5h10v4.3c0 2.9-2.24 5.2-5 5.2s-5-2.3-5-5.2z"/>
+        <path d="M7 6H4.7c0 2.55 1.4 4.15 3.5 4.5M17 6h2.3c0 2.55-1.4 4.15-3.5 4.5"/>
+        <path d="M12 14v3.2M8.7 20.2h6.6M9.5 20.2c0-1.65.85-2.6 2.5-2.6s2.5.95 2.5 2.6"/>
       </symbol>
       <!-- Reloj de arena (reintentando) -->
       <symbol id="icon-hourglass" viewBox="0 0 24 24">
-        <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M6 3.5h12M6 20.5h12M7 3.5c0 4 3 5.5 5 6.5 2-1 5-2.5 5-6.5M7 20.5c0-4 3-5.5 5-6.5 2 1 5 2.5 5 6.5"/>
+        <path d="M6.5 4h11M6.5 20h11M8 4c0 3.6 2.8 5 4 6 1.2-1 4-2.4 4-6M8 20c0-3.6 2.8-5 4-6 1.2 1 4 2.4 4 6"/>
       </symbol>
       <!-- Advertencia (datos no actualizados) -->
       <symbol id="icon-warning" viewBox="0 0 24 24">
-        <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" d="M12 3.75 21.25 20H2.75L12 3.75z"/>
-        <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M12 10v3.6"/>
-        <circle cx="12" cy="16.6" r="0.9" fill="currentColor" stroke="none"/>
+        <path d="M10.5 4.4 3.1 17.6a1.7 1.7 0 0 0 1.5 2.55h14.8a1.7 1.7 0 0 0 1.5-2.55L13.5 4.4a1.72 1.72 0 0 0-3 0z"/>
+        <path d="M12 9.75v4"/>
+        <circle cx="12" cy="16.7" r="0.35" fill="currentColor" stroke="none"/>
       </symbol>
       <!-- Error (bloqueado) -->
       <symbol id="icon-error" viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="8.75" fill="none" stroke="currentColor" stroke-width="1.6"/>
-        <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M6.5 6.5l11 11"/>
+        <circle cx="12" cy="12" r="8.5"/>
+        <path d="M8.7 8.7l6.6 6.6M15.3 8.7l-6.6 6.6"/>
       </symbol>
       <!-- Sin señal (calendario no disponible) -->
       <symbol id="icon-signal" viewBox="0 0 24 24">
-        <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M4 17.5 19.5 4M8.5 17.5c1.5-1.5 3.6-2.4 5.9-2.4M12 21h.01"/>
-        <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M15.8 12.6c1.1.55 2.05 1.3 2.8 2.2M4.6 12.8a11.9 11.9 0 0 1 4-2.7"/>
+        <path d="M5 18.5 19 4.5"/>
+        <path d="M8.4 17.2a5.2 5.2 0 0 1 4-1.85M4.9 13.6a10 10 0 0 1 4-2.6M15.7 13a10 10 0 0 1 3.4 2.3"/>
+        <circle cx="12" cy="19.6" r="0.35" fill="currentColor" stroke="none"/>
       </symbol>
       <!-- Check (clasificación) -->
       <symbol id="icon-check" viewBox="0 0 24 24">
-        <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.5l5 5 10-11"/>
+        <path d="M4.75 12.4 9.5 17l9.75-10.4"/>
       </symbol>
     </defs>
   </svg>
 
   <a class="skip-link" href="#view">Saltar al contenido principal</a>
+
+  <!-- Overlay de transición: "explosión" horizontal de los colores oficiales
+       del Mundial que barre la pantalla al cambiar de vista (ver app.js →
+       playWipe y css/layout.css → .wc-wipe). -->
+  <div id="wc-wipe" class="wc-wipe" aria-hidden="true"><span class="wc-wipe__bands"></span></div>
 
   <div class="shell">
     <!-- ===================== Barra lateral de navegación ===================== -->
