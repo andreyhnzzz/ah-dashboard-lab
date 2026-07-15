@@ -76,11 +76,18 @@ select { font: inherit; font-size: var(--fs-sm); padding: 6px var(--sp-3); borde
  * Banda oscura con el bloque de color del equipo a la izquierda y la cápsula
  * del emblema + posición a la derecha, al estilo de las tarjetas de la marca. */
 .fan-hero {
-  display: flex; align-items: stretch; gap: 0; overflow: hidden;
+  position: relative; display: flex; align-items: stretch; gap: 0; overflow: hidden;
   background: var(--score-bg); border-radius: var(--radius-lg);
   box-shadow: 0 4px 18px rgba(0,0,0,0.25);
   animation: scorecardInLeft 0.5s cubic-bezier(.22,.8,.28,1) both;
 }
+/* Filigrana del unify pattern detrás de la cápsula (lado derecho oscuro). */
+.fan-hero::before {
+  content: ""; position: absolute; inset: 0; z-index: 0;
+  background: url("../assets/pattern-unify.svg") right center / cover no-repeat;
+  opacity: 0.18;
+}
+.fan-hero > * { position: relative; z-index: 1; }
 .fan-hero__side {
   flex: 1; display: flex; align-items: center; gap: var(--sp-4);
   padding: var(--sp-5); min-width: 0;
@@ -155,29 +162,48 @@ select { font: inherit; font-size: var(--fs-sm); padding: 6px var(--sp-3); borde
  * color de marca de cada equipo, cápsula central negra con el emblema y el
  * marcador, y una línea de estado (grupo/fecha) coloreada por grupo. Todo
  * entra con una animación tipo "wipe" — nunca aparece estático. */
-.scorecard__bar { display: flex; align-items: stretch; border-radius: 999px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.22); }
+/* La barra emerge DESDE EL CENTRO (la copa): se revela con clip-path de dentro
+ * hacia afuera y un destello del amplify pattern; la cápsula muestra la copa y
+ * luego cruza-funde a el emblema oficial. */
+.scorecard__bar {
+  position: relative; display: flex; align-items: stretch; border-radius: 999px;
+  overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.22);
+  animation: scBarReveal 0.5s 0.1s cubic-bezier(.4,0,.2,1) both;
+}
+/* Destello del patrón amplify que estalla desde el centro al aparecer. */
+.scorecard__bar::before {
+  content: ""; position: absolute; inset: 0; z-index: 6; pointer-events: none;
+  background: url("../assets/pattern-amplify.svg") center center / cover no-repeat;
+  animation: scBurst 0.6s 0.05s cubic-bezier(.3,0,.2,1) both;
+}
 .scorecard__side {
   flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 8px;
   padding: 8px 14px; font-weight: 800; text-transform: uppercase; font-size: var(--fs-sm);
-  animation: scorecardInLeft 0.5s cubic-bezier(.22,.8,.28,1) both;
 }
-.scorecard__side--away { flex-direction: row-reverse; text-align: right; animation-name: scorecardInRight; }
-.scorecard__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.scorecard__side--away { flex-direction: row-reverse; text-align: right; }
+.scorecard__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; animation: scFadeIn 0.4s 0.42s both; }
 .scorecard__side.is-fav { box-shadow: inset 0 0 0 2px rgba(255,255,255,0.75); }
 .scorecard__side .flag-ico { border-radius: 3px; box-shadow: 0 0 0 1px rgba(255,255,255,0.25); flex-shrink: 0; }
 .scorecard__capsule {
-  flex-shrink: 0; z-index: 1; display: flex; align-items: center; gap: 6px;
+  position: relative; flex-shrink: 0; z-index: 8; display: flex; align-items: center; gap: 6px;
   background: var(--score-bg); color: #fff; padding: 6px 14px;
   font-weight: 800; font-variant-numeric: tabular-nums;
-  animation: scorecardPop 0.4s 0.15s cubic-bezier(.34,1.56,.64,1) both;
+  animation: scorecardPop 0.4s cubic-bezier(.34,1.56,.64,1) both;
 }
-.scorecard__mark { width: 16px; height: 16px; border-radius: 3px; object-fit: cover; }
-.scorecard__num { display: inline-block; min-width: 1ch; text-align: center; }
+/* Marcas superpuestas copa → emblema en el centro de la cápsula. El estado de
+ * REPOSO es el emblema oficial (trophy oculto por defecto): así, corra o no la
+ * animación de entrada, el centro del marcador siempre acaba en el emblema —
+ * la copa solo se ve como origen durante la animación (keyframes con fill). */
+.scorecard__marks { position: relative; width: 18px; height: 18px; flex-shrink: 0; }
+.scorecard__mark { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.scorecard__mark--trophy { opacity: 0; animation: scTrophy 0.95s ease both; }
+.scorecard__mark--emblem { opacity: 1; animation: scEmblem 0.95s ease both; }
+.scorecard__num { display: inline-block; min-width: 1ch; text-align: center; animation: scFadeIn 0.4s 0.42s both; }
 .scorecard__sep { opacity: 0.5; margin: 0 2px; }
 .scorecard__vs { opacity: 0.75; font-size: var(--fs-xs); }
 .scorecard__status {
   margin-top: 6px; text-align: center; font-size: var(--fs-xs); font-weight: 700;
-  color: var(--g, var(--text-muted)); animation: scorecardSlideUp 0.35s 0.25s ease both;
+  color: var(--g, var(--text-muted)); animation: scorecardSlideUp 0.35s 0.5s both;
 }
 .scorecard__result { margin-left: 6px; }
 .res-w { color: var(--good); } .res-d { color: var(--warning); } .res-l { color: var(--danger); }
@@ -187,10 +213,21 @@ select { font: inherit; font-size: var(--fs-sm); padding: 6px var(--sp-3); borde
 .scorecard__result.res-d, .matrix__result.res-d { color: #facc15; }
 .scorecard__result.res-l, .matrix__result.res-l { color: #f87171; }
 
-@keyframes scorecardInLeft { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
-@keyframes scorecardInRight { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+@keyframes scBarReveal { from { clip-path: inset(0 49% 0 49% round 999px); } to { clip-path: inset(0 0 0 0 round 999px); } }
+@keyframes scBurst { 0% { opacity: 0.85; transform: scale(0.15); } 55% { opacity: 0.5; } 100% { opacity: 0; transform: scale(1.7); } }
 @keyframes scorecardPop { from { opacity: 0; transform: scale(0.4); } to { opacity: 1; transform: none; } }
 @keyframes scorecardSlideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes scFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scTrophy { 0% { opacity: 1; transform: scale(1.5); } 42% { opacity: 1; transform: scale(1); } 60% { opacity: 0; } 100% { opacity: 0; } }
+@keyframes scEmblem { 0%, 52% { opacity: 0; } 74%, 100% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .scorecard__bar, .scorecard__bar::before, .scorecard__name, .scorecard__num,
+  .scorecard__capsule, .scorecard__status, .scorecard__mark--trophy, .scorecard__mark--emblem { animation: none; }
+  .scorecard__bar { clip-path: none; }
+  .scorecard__bar::before { display: none; }
+  .scorecard__mark--trophy { opacity: 0; }
+  .scorecard__mark--emblem { opacity: 1; }
+}
 
 /* --- Estados vacíos / error --- */
 .empty-state { text-align: center; padding: 3rem 1rem; display: flex; flex-direction: column; align-items: center; gap: var(--sp-2); }
