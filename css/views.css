@@ -4,8 +4,13 @@
 
 /* ---------------------- Inicio / Resumen -------------------------------- */
 .hero-lg {
+  position: relative; overflow: hidden;
   display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4);
-  background: var(--wc-gradient);
+  /* Unify pattern (bloques geométricos oficiales) con un velo oscuro a la
+     izquierda para mantener legible el titular en blanco. */
+  background:
+    linear-gradient(90deg, rgba(18,15,28,0.88) 0%, rgba(18,15,28,0.55) 45%, rgba(18,15,28,0.12) 100%),
+    url("../assets/pattern-unify.svg") center center / cover no-repeat;
   border-radius: var(--radius-lg); padding: var(--sp-6);
   color: #fff;
 }
