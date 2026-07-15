@@ -97,6 +97,13 @@
       <symbol id="icon-check" viewBox="0 0 24 24">
         <path d="M4.75 12.4 9.5 17l9.75-10.4"/>
       </symbol>
+      <!-- Accesibilidad (símbolo de acceso universal) -->
+      <symbol id="icon-access" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9"/>
+        <circle cx="12" cy="6.6" r="1.15" fill="currentColor" stroke="none"/>
+        <path d="M6.5 9.2c1.8.9 3.6 1.1 5.5 1.1s3.7-.2 5.5-1.1"/>
+        <path d="M12 10.3v4M12 14.3 9.4 18.5M12 14.3l2.6 4.2"/>
+      </symbol>
     </defs>
   </svg>
 
@@ -206,6 +213,26 @@
 
       <footer class="app-footer">
         <p>Proyecto Final ISW-521 · Categoría B · Interfaces Interactivas y DOM Avanzado · Datos: API del Mundial 2026 (worldcup26.ir).</p>
+
+        <!-- Declaración de accesibilidad y cumplimiento normativo. Discreta
+             (opacidad baja en reposo) pero ubicable y accesible: se abre por
+             clic o teclado, y el foco/hover la lleva a opacidad plena. -->
+        <details class="a11y">
+          <summary class="a11y__summary">
+            <svg class="icon" aria-hidden="true"><use href="#icon-access"></use></svg>
+            <span>Accesibilidad · WCAG 2.1 AA · Ley N.º 7600 (Costa Rica)</span>
+          </summary>
+          <div class="a11y__panel">
+            <p class="a11y__intro">Este panel se diseñó siguiendo las <strong>Pautas de Accesibilidad para el Contenido Web (WCAG 2.1), nivel AA</strong>, y en apego a la <strong>Ley N.º 7600 de Igualdad de Oportunidades para las Personas con Discapacidad</strong> de Costa Rica y su reglamento, que garantizan el acceso equitativo a la información.</p>
+            <ul class="a11y__list">
+              <li><strong>Perceptible:</strong> contraste de color validado (AA), texto redimensionable, íconos decorativos con <code>aria-hidden</code> y banderas con texto alternativo.</li>
+              <li><strong>Operable:</strong> navegación completa por teclado, foco visible, enlace «Saltar al contenido» y respeto por <code>prefers-reduced-motion</code>.</li>
+              <li><strong>Comprensible:</strong> idioma declarado (<code>lang="es"</code>), etiquetas y roles ARIA, y estados dinámicos anunciados con regiones <code>aria-live</code>.</li>
+              <li><strong>Robusto:</strong> HTML semántico compatible con lectores de pantalla y tecnologías de apoyo.</li>
+            </ul>
+            <p class="a11y__note">Cualquier barrera de acceso detectada puede reportarse para su corrección, conforme al principio de mejora continua de la Ley 7600.</p>
+          </div>
+        </details>
       </footer>
     </div>
   </div>
