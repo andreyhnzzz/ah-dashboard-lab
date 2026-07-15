@@ -58,6 +58,7 @@
    * instalada (tipografía de soporte oficial) con fallback a system-ui. --- */
   --font-sans: "Noto Sans", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-display: "FWC26", "Arial Narrow", "Noto Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-logo: "FIFA26 Logo", "FWC26", system-ui, sans-serif;   /* solo para el slogan "WE ARE 26" */
   --fs-hero:   clamp(2.4rem, 5vw, 3.4rem);
   --fs-xl:     1.5rem;
   --fs-lg:     1.15rem;
