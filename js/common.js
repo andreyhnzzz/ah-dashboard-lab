@@ -268,6 +268,40 @@
     return icon('trophy', 'flag-ico flag-ico--fallback');
   }
 
+  // Tarjeta de partido estilo "scoreboard" de transmisión deportiva (ver
+  // referencias de diseño del Mundial 2026): dos extremos de color —el color
+  // de marca de cada equipo, ya derivado en adaptTeam()— y una cápsula negra
+  // central con el emblema y el marcador. La reutilizan Sedes, Agenda,
+  // Timeline y el Dashboard del Fanático para que el look sea el mismo en
+  // toda la app. `opts.statusColor` recibe típicamente groupColor(letra).
+  function scorecardBar(opts) {
+    var home = store.teamById[opts.homeId], away = store.teamById[opts.awayId];
+    var homeColor = (home && home.color) || '#3a3a42';
+    var awayColor = (away && away.color) || '#3a3a42';
+    var homeName = teamName(opts.homeId, opts.homeLabel);
+    var awayName = teamName(opts.awayId, opts.awayLabel);
+    var scoreInner = opts.played
+      ? '<span class="scorecard__num">'+esc(opts.homeScore)+'</span><span class="scorecard__sep">–</span><span class="scorecard__num">'+esc(opts.awayScore)+'</span>'
+      : '<span class="scorecard__vs">vs</span>';
+    var statusLine = '';
+    if (opts.statusText != null) {
+      statusLine = '<div class="scorecard__status" style="--g:'+(opts.statusColor || 'var(--text-muted)')+'">'+esc(opts.statusText)+
+        (opts.resultText ? ' <span class="scorecard__result '+(opts.resultClass||'')+'">'+esc(opts.resultText)+'</span>' : '')+'</div>';
+    }
+    return '<div class="scorecard fade-in">'+
+      '<div class="scorecard__bar">'+
+        '<span class="scorecard__side scorecard__side--home'+(opts.favId===opts.homeId?' is-fav':'')+'" style="background:'+homeColor+';color:'+contrastText(homeColor)+'">'+
+          teamFlagHtml(opts.homeId, opts.homeLabel)+'<span class="scorecard__name">'+esc(homeName)+'</span>'+
+        '</span>'+
+        '<span class="scorecard__capsule"><img class="scorecard__mark" src="assets/emblem.png" alt="">'+
+          '<span class="scorecard__score">'+scoreInner+'</span></span>'+
+        '<span class="scorecard__side scorecard__side--away'+(opts.favId===opts.awayId?' is-fav':'')+'" style="background:'+awayColor+';color:'+contrastText(awayColor)+'">'+
+          '<span class="scorecard__name">'+esc(awayName)+'</span>'+teamFlagHtml(opts.awayId, opts.awayLabel)+
+        '</span>'+
+      '</div>'+statusLine+
+    '</div>';
+  }
+
   // Récord Jugados/Ganados/Empatados/Perdidos de un equipo en fase de grupos,
   // derivado de los partidos reales (la API de grupos solo da pts/gf/ga, no
   // el desglose W/D/L).
@@ -316,7 +350,7 @@
   App.common = {
     $: $, esc: esc, icon: icon, store: store,
     setTeams: setTeams, setStadiums: setStadiums, setGames: setGames, setGroups: setGroups,
-    teamName: teamName, teamFlagHtml: teamFlagHtml, teamRecord: teamRecord, groupColor: groupColor,
+    teamName: teamName, teamFlagHtml: teamFlagHtml, teamRecord: teamRecord, groupColor: groupColor, scorecardBar: scorecardBar,
     applyTeamTheme: applyTeamTheme, contrastText: contrastText,
     fmtDate: fmtDate, fmtDateLong: fmtDateLong,
     ui: ui, skeletonCards: skeletonCards,

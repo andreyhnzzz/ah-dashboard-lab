@@ -35,31 +35,44 @@
     var prev = state.currentId && App.views[state.currentId];
     if(prev && typeof prev.destroy==='function'){ prev.destroy(); }
 
+    var isFirst = !state.currentId;
     state.currentId = id;
     var view = App.views[id];
     var el = K.$('view');
     state.currentEl = el;
 
-    // Estado visual del nav.
-    document.querySelectorAll('.nav__item').forEach(function(b){
-      var on = b.getAttribute('data-view')===id;
-      b.classList.toggle('is-active', on);
-      if(on){ b.setAttribute('aria-current','page'); } else { b.removeAttribute('aria-current'); }
-    });
+    function swap(){
+      // Estado visual del nav.
+      document.querySelectorAll('.nav__item').forEach(function(b){
+        var on = b.getAttribute('data-view')===id;
+        b.classList.toggle('is-active', on);
+        if(on){ b.setAttribute('aria-current','page'); } else { b.removeAttribute('aria-current'); }
+      });
 
-    // Topbar.
-    K.$('view-title').textContent = view.title;
-    K.$('view-desc').textContent = view.desc;
+      // Topbar.
+      K.$('view-title').textContent = view.title;
+      K.$('view-desc').textContent = view.desc;
 
-    el.setAttribute('aria-busy','false');
-    view.render(el);
-    el.focus({ preventScroll: true });
+      el.setAttribute('aria-busy','false');
+      view.render(el);
+      el.classList.remove('view--leaving');
+      el.focus({ preventScroll: true });
 
-    // Recuerda la vista activa: si el usuario hace un refresco completo del
-    // navegador (F5) estando en el Dashboard del Fanático, el reto de
-    // resiliencia 2.4 exige volver a mostrarlo (con datos cacheados si hace
-    // falta) en vez de perder el contexto en la pantalla de Resumen.
-    App.storage.setLastView(id);
+      // Recuerda la vista activa: si el usuario hace un refresco completo del
+      // navegador (F5) estando en el Dashboard del Fanático, el reto de
+      // resiliencia 2.4 exige volver a mostrarlo (con datos cacheados si hace
+      // falta) en vez de perder el contexto en la pantalla de Resumen.
+      App.storage.setLastView(id);
+    }
+
+    // Pequeña transición de salida/entrada entre vistas (no aplica en la
+    // primera carga, ni si el usuario prefiere menos movimiento).
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(isFirst || reduceMotion){ swap(); }
+    else {
+      el.classList.add('view--leaving');
+      setTimeout(swap, 150);
+    }
   }
   App.app = App.app || {};
   App.app.go = go;

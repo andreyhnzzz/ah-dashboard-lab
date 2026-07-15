@@ -19,13 +19,12 @@
 
   function matchRow(m){
     var played = m.status==='played' && m.home_score!=null;
-    var score = played ? (m.home_score+' – '+m.away_score) : '<span class="tag tag--pending">Pendiente</span>';
     var stage = m.stage==='group' ? ('Grupo '+m.group) : (m.stage_label||'Eliminatoria');
-    return '<li class="vmatch">'+
-      '<span class="vmatch__teams">'+C.teamFlagHtml(m.home_team, m.home_team_label)+' '+C.esc(C.teamName(m.home_team, m.home_team_label))+
-        ' <span class="vmatch__vs">vs</span> '+C.esc(C.teamName(m.away_team, m.away_team_label))+' '+C.teamFlagHtml(m.away_team, m.away_team_label)+'</span>'+
-      '<span class="vmatch__meta">'+C.esc(stage)+' · '+C.esc(C.fmtDate(m.local_date))+'</span>'+
-      '<span class="vmatch__score">'+score+'</span></li>';
+    return '<li>'+C.scorecardBar({
+      homeId: m.home_team, homeLabel: m.home_team_label, awayId: m.away_team, awayLabel: m.away_team_label,
+      played: played, homeScore: m.home_score, awayScore: m.away_score,
+      statusText: stage+' · '+C.fmtDate(m.local_date), statusColor: m.stage==='group'?C.groupColor(m.group):null
+    })+'</li>';
   }
 
   function renderDetail(host, stadiumId){

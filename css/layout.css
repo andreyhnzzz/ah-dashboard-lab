@@ -67,7 +67,16 @@ body {
 .banners { padding: 0 var(--sp-5); }
 .banners:empty { display: none; }
 
-.view { flex: 1; padding: var(--sp-5); display: flex; flex-direction: column; gap: var(--sp-5); }
+.view { flex: 1; padding: var(--sp-5); display: flex; flex-direction: column; gap: var(--sp-5); transition: opacity 0.15s ease, transform 0.15s ease; }
+.view--leaving { opacity: 0; transform: translateY(6px); }
+
+/* Franja de color oficial, como marco de sección en las referencias del
+ * Mundial 2026 (barras superior/inferior de la identidad de transmisión).
+ * Deslizamiento continuo y sutil — nunca queda estática. */
+.wc-bar { height: 4px; margin: 0 var(--sp-5); border-radius: 999px; background: var(--wc-gradient); background-size: 200% 100%; animation: wcBarShift 8s linear infinite; }
+.wc-bar--reverse { animation-direction: reverse; }
+@keyframes wcBarShift { to { background-position: -200% 0; } }
+@media (max-width: 560px) { .wc-bar { margin: 0 var(--sp-4); } }
 
 .app-footer {
   padding: var(--sp-4) var(--sp-5); border-top: 1px solid var(--border);

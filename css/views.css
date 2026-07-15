@@ -43,25 +43,17 @@
 .venue__city { display: block; font-size: var(--fs-xs); color: var(--score-fg-muted); }
 .venue-detail { scroll-margin-top: 90px; }
 .placeholder { text-align: center; }
-.vmatch-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
-.vmatch { display: grid; grid-template-columns: 1fr auto auto; gap: var(--sp-3); align-items: center; padding: var(--sp-3); background: var(--score-bg); border-radius: var(--radius-sm); color: var(--score-fg); }
-.vmatch__teams { font-size: var(--fs-sm); font-weight: 700; text-transform: uppercase; }
-.vmatch__teams .flag-ico { border-radius: 4px; box-shadow: 0 0 0 1px rgba(255,255,255,0.15); }
-.vmatch__vs { color: var(--score-fg-muted); font-weight: 400; text-transform: none; }
-.vmatch__meta { font-size: var(--fs-xs); color: var(--score-fg-muted); }
-.vmatch__score { font-weight: 800; font-variant-numeric: tabular-nums; background: var(--score-pill-bg); border-radius: 999px; padding: 2px 10px; }
+.vmatch-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-3); }
 @media (max-width: 720px) { .sedes-layout { grid-template-columns: 1fr; } .venue-list { max-height: none; } }
 
 /* ---------------------- Agenda Simultánea ------------------------------- */
 .agenda-controls { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); }
 .agenda-controls__center { text-align: center; }
 .agenda-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--sp-4); }
-.acol { display: flex; flex-direction: column; gap: var(--sp-2); background: var(--score-bg); border-top: 4px solid var(--team-accent); border-radius: var(--radius-md); padding: var(--sp-4); color: var(--score-fg); }
-.acol__stage { font-size: var(--fs-xs); font-weight: 800; color: var(--score-fg-muted); text-transform: uppercase; letter-spacing: 0.06em; }
-.acol__team { display: flex; align-items: center; gap: var(--sp-2); font-weight: 700; text-transform: uppercase; font-size: var(--fs-sm); }
-.acol__team .flag-ico { border-radius: 4px; box-shadow: 0 0 0 1px rgba(255,255,255,0.15); }
-.acol__score { font-size: 1.6rem; font-weight: 800; text-align: center; font-variant-numeric: tabular-nums; background: var(--score-pill-bg); border-radius: 999px; padding: 2px 0; margin: 2px 0; }
-.acol__pending { text-align: center; padding: var(--sp-1) 0; }
+.acol { display: flex; flex-direction: column; gap: var(--sp-3); background: var(--score-bg); border-top: 4px solid var(--g, var(--wc-violet)); border-radius: var(--radius-md); padding: var(--sp-4); color: var(--score-fg); }
+.acol__stage { font-size: var(--fs-xs); font-weight: 800; color: var(--g, var(--score-fg-muted)); text-transform: uppercase; letter-spacing: 0.06em; }
+.acol .scorecard__bar { flex-direction: column; gap: 6px; }
+.acol .scorecard__side { border-radius: var(--radius-sm); justify-content: center; }
 .acol__venue { font-size: var(--fs-xs); color: var(--score-fg-muted); margin-top: auto; display: flex; align-items: center; gap: 4px; }
 .acol__venue-icon { flex-shrink: 0; }
 
@@ -69,18 +61,12 @@
  * Misma tarjeta "scoreboard" oscura que el resto de los listados de
  * partidos, para que la identidad visual sea consistente en toda la app. */
 .tl-head { display: flex; align-items: center; justify-content: space-between; }
-.tl-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
-.tl-item { display: grid; grid-template-columns: 54px 70px 1fr auto; gap: var(--sp-3); align-items: center; background: var(--score-bg); border-radius: var(--radius-sm); padding: var(--sp-3); color: var(--score-fg); }
-.tl-item__idx { font-weight: 800; color: var(--wc-lime); font-variant-numeric: tabular-nums; }
-.tl-item__date { font-size: var(--fs-xs); color: var(--score-fg-muted); }
-.tl-item__teams { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); font-weight: 700; text-transform: uppercase; font-size: var(--fs-sm); }
-.tl-item__teams .flag-ico { border-radius: 4px; box-shadow: 0 0 0 1px rgba(255,255,255,0.15); }
-.tl-item__score { font-weight: 800; font-variant-numeric: tabular-nums; background: var(--score-pill-bg); border-radius: 999px; padding: 2px 10px; }
-.tl-item__stage { font-size: var(--fs-xs); text-align: right; color: var(--score-fg-muted); }
-.tl-item .tag--pending { color: var(--score-fg-muted); border-color: var(--score-fg-muted); }
+.tl-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-3); }
+.tl-item { display: flex; align-items: center; gap: var(--sp-3); }
+.tl-item__idx { flex-shrink: 0; width: 40px; font-weight: 800; color: var(--wc-lime); font-variant-numeric: tabular-nums; }
+.tl-item .scorecard { flex: 1; min-width: 0; }
 .tl-sentinel { text-align: center; padding: var(--sp-4); color: var(--text-muted); font-size: var(--fs-sm); }
 .tl-end { font-weight: 700; color: var(--text-secondary); }
-@media (max-width: 620px) { .tl-item { grid-template-columns: 40px 1fr; } .tl-item__date, .tl-item__stage { display: none; } }
 
 /* ---------------------- Matriz de Enfrentamientos -----------------------
  * Cada grupo tiene su propio color (--g, inyectado inline por JS desde

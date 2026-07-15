@@ -69,9 +69,6 @@ select { font: inherit; font-size: var(--fs-sm); padding: 6px var(--sp-3); borde
 /* --- Tags --- */
 .tag { display: inline-block; font-size: var(--fs-xs); font-weight: 700; padding: 1px 8px; border-radius: 999px; }
 .tag--pending { color: var(--text-muted); border: 1px dashed var(--border-strong); }
-/* Sobre tarjetas oscuras (.acol, .vmatch, .match) el tag necesita contraste
- * distinto al de superficies claras. */
-.acol .tag--pending, .vmatch .tag--pending, .match .tag--pending { color: var(--score-fg-muted); border-color: var(--score-fg-muted); }
 
 /* --- Stat tiles / hero fanático (compartidos con la vista fanático) --- */
 .stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--sp-3); }
@@ -106,28 +103,51 @@ select { font: inherit; font-size: var(--fs-sm); padding: 6px var(--sp-3); borde
 .standings .pos-pill { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; font-size: var(--fs-xs); font-weight: 700; background: var(--surface-2); color: var(--text-secondary); }
 .standings tbody tr.qualifies .pos-pill { background: var(--team-accent); color: var(--team-accent-contrast); }
 
-/* --- Lista de partidos (fanático) — tarjeta "scoreboard" oscura, según las
- * referencias adjuntas (marcador en negro, banderas en chip, nombre en
- * mayúsculas bold). Independiente del tema claro/oscuro del resto de la UI. */
-.matches { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
-.match { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4); background: var(--score-bg); border-radius: var(--radius-sm); }
-.match__side { display: flex; align-items: center; gap: var(--sp-2); min-width: 0; }
-.match__side--away { justify-content: flex-end; text-align: right; }
-.match__name { font-size: var(--fs-sm); font-weight: 700; text-transform: uppercase; letter-spacing: 0.01em; color: var(--score-fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.match__name.is-fav { color: var(--wc-lime); }
-.match__center { text-align: center; min-width: 78px; }
-.match__score { font-size: var(--fs-lg); font-weight: 800; font-variant-numeric: tabular-nums; color: var(--score-fg); background: var(--score-pill-bg); border-radius: 999px; padding: 2px 12px; display: inline-block; }
-.match__date { font-size: var(--fs-xs); color: var(--score-fg-muted); margin-top: 4px; }
-.match__pending { display: inline-block; font-size: var(--fs-xs); font-weight: 700; color: var(--score-fg-muted); border: 1px dashed var(--score-fg-muted); border-radius: 999px; padding: 1px 8px; }
-.match__flag { font-size: 1.3rem; }
-.match__flag .flag-ico { border-radius: 4px; box-shadow: 0 0 0 1px rgba(255,255,255,0.15); }
-.match__result { font-size: var(--fs-xs); font-weight: 700; margin-top: 2px; display: inline-block; }
+/* --- Lista de partidos (fanático) --- */
+.matches { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-3); }
+
+/* --- Scorecard: tarjeta "lower third" de transmisión deportiva -----------
+ * Componente compartido por Sedes, Agenda, Timeline y el Dashboard del
+ * Fanático (ver App.common.scorecardBar en js/common.js). Extremos con el
+ * color de marca de cada equipo, cápsula central negra con el emblema y el
+ * marcador, y una línea de estado (grupo/fecha) coloreada por grupo. Todo
+ * entra con una animación tipo "wipe" — nunca aparece estático. */
+.scorecard__bar { display: flex; align-items: stretch; border-radius: 999px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.22); }
+.scorecard__side {
+  flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 8px;
+  padding: 8px 14px; font-weight: 800; text-transform: uppercase; font-size: var(--fs-sm);
+  animation: scorecardInLeft 0.5s cubic-bezier(.22,.8,.28,1) both;
+}
+.scorecard__side--away { flex-direction: row-reverse; text-align: right; animation-name: scorecardInRight; }
+.scorecard__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.scorecard__side.is-fav { box-shadow: inset 0 0 0 2px rgba(255,255,255,0.75); }
+.scorecard__side .flag-ico { border-radius: 3px; box-shadow: 0 0 0 1px rgba(255,255,255,0.25); flex-shrink: 0; }
+.scorecard__capsule {
+  flex-shrink: 0; z-index: 1; display: flex; align-items: center; gap: 6px;
+  background: var(--score-bg); color: #fff; padding: 6px 14px;
+  font-weight: 800; font-variant-numeric: tabular-nums;
+  animation: scorecardPop 0.4s 0.15s cubic-bezier(.34,1.56,.64,1) both;
+}
+.scorecard__mark { width: 16px; height: 16px; border-radius: 3px; object-fit: cover; }
+.scorecard__num { display: inline-block; min-width: 1ch; text-align: center; }
+.scorecard__sep { opacity: 0.5; margin: 0 2px; }
+.scorecard__vs { opacity: 0.75; font-size: var(--fs-xs); }
+.scorecard__status {
+  margin-top: 6px; text-align: center; font-size: var(--fs-xs); font-weight: 700;
+  color: var(--g, var(--text-muted)); animation: scorecardSlideUp 0.35s 0.25s ease both;
+}
+.scorecard__result { margin-left: 6px; }
 .res-w { color: var(--good); } .res-d { color: var(--warning); } .res-l { color: var(--danger); }
-/* Los marcadores en tarjeta oscura (.match, .matrix) necesitan tonos más
- * claros que los definidos para superficies claras, o pierden contraste. */
-.match .res-w, .matrix__result.res-w { color: #4ade80; }
-.match .res-d, .matrix__result.res-d { color: #facc15; }
-.match .res-l, .matrix__result.res-l { color: #f87171; }
+/* Los marcadores del scorecard y de la matriz van sobre fondo oscuro y
+ * necesitan tonos más claros que los definidos para superficies claras. */
+.scorecard__result.res-w, .matrix__result.res-w { color: #4ade80; }
+.scorecard__result.res-d, .matrix__result.res-d { color: #facc15; }
+.scorecard__result.res-l, .matrix__result.res-l { color: #f87171; }
+
+@keyframes scorecardInLeft { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
+@keyframes scorecardInRight { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+@keyframes scorecardPop { from { opacity: 0; transform: scale(0.4); } to { opacity: 1; transform: none; } }
+@keyframes scorecardSlideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
 /* --- Estados vacíos / error --- */
 .empty-state { text-align: center; padding: 3rem 1rem; display: flex; flex-direction: column; align-items: center; gap: var(--sp-2); }

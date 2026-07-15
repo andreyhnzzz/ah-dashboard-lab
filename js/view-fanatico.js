@@ -62,19 +62,16 @@
   function matches(list, fav){
     if(!list || !list.length){ return '<p class="notice">No se pudieron cargar los partidos de este equipo.</p>'; }
     var items = list.slice().sort(function(a,b){ return a.local_date.localeCompare(b.local_date); }).map(function(m){
-      var homeName = C.teamName(m.home_team, m.home_team_label);
-      var awayName = C.teamName(m.away_team, m.away_team_label);
       var played=m.status==='played'&&m.home_score!=null;
       var favIsHome=m.home_team===fav.id, gf=favIsHome?m.home_score:m.away_score, ga=favIsHome?m.away_score:m.home_score;
       var rc=played?(gf>ga?'res-w':gf<ga?'res-l':'res-d'):'', rl=rc==='res-w'?'Victoria':rc==='res-l'?'Derrota':rc==='res-d'?'Empate':'';
-      var center=played?('<div class="match__score">'+m.home_score+' – '+m.away_score+'</div><div class="match__result '+rc+'">'+rl+'</div>')
-        :'<span class="match__pending">Pendiente</span>';
-      return '<li class="match"><span class="match__side">'+
-        '<span class="match__flag">'+C.teamFlagHtml(m.home_team, m.home_team_label)+'</span>'+
-        '<span class="match__name '+(m.home_team===fav.id?'is-fav':'')+'">'+C.esc(homeName)+'</span></span>'+
-        '<span class="match__center">'+center+'<div class="match__date">'+C.esc(C.fmtDate(m.local_date))+'</div></span>'+
-        '<span class="match__side match__side--away"><span class="match__name '+(m.away_team===fav.id?'is-fav':'')+'">'+C.esc(awayName)+'</span>'+
-        '<span class="match__flag">'+C.teamFlagHtml(m.away_team, m.away_team_label)+'</span></span></li>';
+      var stage = m.stage==='group' ? ('Grupo '+m.group) : (m.stage_label||'Eliminatoria');
+      return '<li>'+C.scorecardBar({
+        homeId: m.home_team, homeLabel: m.home_team_label, awayId: m.away_team, awayLabel: m.away_team_label,
+        played: played, homeScore: m.home_score, awayScore: m.away_score,
+        statusText: stage+' · '+C.fmtDate(m.local_date), statusColor: m.stage==='group'?C.groupColor(m.group):null,
+        favId: fav.id, resultText: played?rl:null, resultClass: rc
+      })+'</li>';
     }).join('');
     return '<ul class="matches">'+items+'</ul>';
   }

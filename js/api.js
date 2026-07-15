@@ -94,6 +94,34 @@
     return Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
   }
 
+  // POST con la MISMA resiliencia que getData(): reintenta con backoff
+  // exponencial ante 429/5xx y ante fallos de red, en vez de fallar al primer
+  // intento (el login es el punto de entrada más visible de la app — si la
+  // API está momentáneamente saturada, no tiene sentido mostrar un error
+  // inmediato en vez de reintentar como en el resto de los endpoints).
+  async function postWithRetry(url, payload) {
+    var attempt = 0;
+    while (true) {
+      attempt += 1;
+      var res;
+      try {
+        res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      } catch (networkError) {
+        if (attempt < C.MAX_ATTEMPTS) { await backoffWait(attempt, 0); continue; }
+        hooks.onRetryDone();
+        throw networkError;
+      }
+      if (res.ok || (res.status !== 429 && res.status < 500)) { hooks.onRetryDone(); return res; }
+      if (attempt < C.MAX_ATTEMPTS) { await backoffWait(attempt, res.status); continue; }
+      hooks.onRetryDone();
+      return res;
+    }
+  }
+
   // registerDevice()/loginDevice() son las DOS únicas puertas de entrada al
   // token, y las llama tanto la pantalla de login (js/view-login.js, con el
   // usuario mirando) como el fallback silencioso de getData() más abajo. En
@@ -110,11 +138,8 @@
     var suffix = randomToken();
     var email = 'dashboard.' + suffix + '@wc26-isw521.local';
     var password = 'Wc26-' + suffix + '-Aa1';
-    var res = await fetch(C.API_BASE + C.AUTH_REGISTER_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({ name: (displayName || 'Fanático ISW-521'), email: email, password: password })
-    });
+    var res = await postWithRetry(C.API_BASE + C.AUTH_REGISTER_ENDPOINT,
+      { name: (displayName || 'Fanático ISW-521'), email: email, password: password });
     if (!res.ok) { throw new HttpError(res.status, 'No se pudo registrar el dispositivo en la API'); }
     var body = await res.json();
     if (!body.token) { throw new AuthError('El registro no devolvió un token'); }
@@ -129,11 +154,7 @@
       App.storage.setToken(fakeToken2);
       return fakeToken2;
     }
-    var res = await fetch(C.API_BASE + C.AUTH_LOGIN_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({ email: email, password: password })
-    });
+    var res = await postWithRetry(C.API_BASE + C.AUTH_LOGIN_ENDPOINT, { email: email, password: password });
     if (!res.ok) { throw new HttpError(res.status, 'Fallo de autenticación'); }
     var body = await res.json();
     if (!body.token) { throw new AuthError('El login no devolvió un token'); }

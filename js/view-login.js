@@ -74,27 +74,67 @@
     $('auth-name').disabled = busy;
   }
 
+  // Mensaje accionable según el tipo de fallo — el login es la primera
+  // pantalla que ve cualquiera, así que un "error de red" genérico no alcanza
+  // para que alguien sin contexto técnico sepa qué hacer.
+  function describeError(err) {
+    if (err instanceof App.api.AuthError) {
+      return 'La API respondió pero no devolvió una sesión válida. Probá de nuevo en unos segundos.';
+    }
+    if (err instanceof App.api.HttpError) {
+      if (err.status === 429) { return 'Demasiadas solicitudes a la API (límite de tasa). Ya se reintentó automáticamente; esperá un minuto y volvé a intentar.'; }
+      if (err.status >= 500) { return 'El servidor de la API tuvo un problema temporal (error ' + err.status + '). Ya se reintentó automáticamente; probá de nuevo.'; }
+      return 'La API rechazó la solicitud (error ' + err.status + ').';
+    }
+    // TypeError de fetch ("Failed to fetch" / "NetworkError…"): sin
+    // conexión, o la página se abrió con doble clic (file://) en vez de
+    // servirla desde un servidor local — ver guía de login en el README.
+    return 'No se pudo conectar con la API. Revisá tu conexión a internet y que esta página se esté sirviendo desde un servidor local (no abierta con doble clic) — ver la guía de login en el README.';
+  }
+
+  // Durante el intento, refleja los reintentos con backoff (429/5xx) en la
+  // misma tarjeta — si no, quedarían "atrapados" detrás del auth-gate, que
+  // cubre toda la app y oculta el banner global de reintento.
+  async function withRetryStatus(fn) {
+    var prevOnRetry = App.api.hooks.onRetry, prevOnTick = App.api.hooks.onCountdownTick, prevOnDone = App.api.hooks.onRetryDone;
+    App.api.hooks.onRetry = function (info) {
+      showStatus('Reintentando (intento ' + info.attempt + ')… ' + Math.round(info.waitMs / 1000) + ' s', 'loading');
+    };
+    App.api.hooks.onCountdownTick = function (info) {
+      showStatus('Límite de tasa. Próximo intento en ' + info.secondsLeft + ' s…', 'loading');
+    };
+    App.api.hooks.onRetryDone = function () {};
+    try {
+      await fn();
+    } finally {
+      App.api.hooks.onRetry = prevOnRetry;
+      App.api.hooks.onCountdownTick = prevOnTick;
+      App.api.hooks.onRetryDone = prevOnDone;
+    }
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setBusy(true);
     showStatus(mode === 'new' ? 'Registrando dispositivo…' : 'Conectando…', 'loading');
     try {
-      if (mode === 'new') {
-        var name = $('auth-name').value.trim();
-        await App.api.registerDevice(name);
-      } else {
-        var email = App.storage.getDeviceEmail(), pass = App.storage.getDevicePassword();
-        if (email && pass) { await App.api.loginDevice(email, pass); }
-        else { await App.api.registerDevice(); } // credenciales perdidas: re-registra
-      }
+      await withRetryStatus(async function () {
+        if (mode === 'new') {
+          var name = $('auth-name').value.trim();
+          await App.api.registerDevice(name);
+        } else {
+          var email = App.storage.getDeviceEmail(), pass = App.storage.getDevicePassword();
+          if (email && pass) { await App.api.loginDevice(email, pass); }
+          else { await App.api.registerDevice(); } // credenciales perdidas: re-registra
+        }
+      });
       hide();
       if (typeof onSuccess === 'function') { await onSuccess(); }
     } catch (err) {
       // Sin alert(): el error queda dentro de la misma tarjeta, con botón
       // para reintentar (reenviar el formulario dispara el mismo flujo).
       console.error('[auth] fallo de autenticación:', err);
-      var msg = (err && err.message) ? err.message : 'error de red';
-      showStatus('No se pudo conectar con la API (' + msg + '). Revisá tu conexión e intentá de nuevo.', 'error');
+      showStatus(describeError(err), 'error');
     } finally {
       setBusy(false);
     }

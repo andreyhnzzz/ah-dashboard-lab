@@ -23,14 +23,13 @@
     var played = m.status==='played' && m.home_score!=null;
     var st = S.stadiumById[m.stadium_id];
     var stage = m.stage==='group' ? ('Grupo '+m.group) : (m.stage_label||'Eliminatoria');
-    var center = played
-      ? '<div class="acol__score">'+m.home_score+' – '+m.away_score+'</div>'
-      : '<div class="acol__pending"><span class="tag tag--pending">Pendiente</span></div>';
+    var stageColor = m.stage==='group' ? C.groupColor(m.group) : 'var(--wc-violet)';
     return '<article class="acol">'+
-      '<header class="acol__stage">'+C.esc(stage)+'</header>'+
-      '<div class="acol__team">'+C.teamFlagHtml(m.home_team, m.home_team_label)+' <span>'+C.esc(C.teamName(m.home_team, m.home_team_label))+'</span></div>'+
-      center+
-      '<div class="acol__team">'+C.teamFlagHtml(m.away_team, m.away_team_label)+' <span>'+C.esc(C.teamName(m.away_team, m.away_team_label))+'</span></div>'+
+      '<header class="acol__stage" style="--g:'+stageColor+'">'+C.esc(stage)+'</header>'+
+      C.scorecardBar({
+        homeId: m.home_team, homeLabel: m.home_team_label, awayId: m.away_team, awayLabel: m.away_team_label,
+        played: played, homeScore: m.home_score, awayScore: m.away_score
+      })+
       '<footer class="acol__venue">'+(st?(C.icon('stadium','acol__venue-icon')+' '+C.esc(st.name)+' · '+C.esc(st.city)):'Sede por confirmar')+'</footer>'+
       '</article>';
   }
