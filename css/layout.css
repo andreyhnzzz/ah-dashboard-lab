@@ -145,6 +145,37 @@ body {
   padding: var(--sp-4) var(--sp-5); border-top: 1px solid var(--border);
   font-size: var(--fs-xs); color: var(--text-muted);
 }
+.app-footer > p { margin: 0; }
+
+/* --- Declaración de accesibilidad (WCAG 2.1 AA + Ley 7600) ----------------
+ * Discreta: opacidad baja en reposo para no competir con la estética, y
+ * opacidad plena al pasar el mouse, al enfocar por teclado o al abrirla —
+ * de modo que nunca queda inaccesible para quien la necesita. */
+.a11y {
+  margin-top: var(--sp-2);
+  opacity: 0.32;
+  transition: opacity var(--transition);
+}
+.a11y:hover, .a11y:focus-within, .a11y[open] { opacity: 1; }
+.a11y__summary {
+  display: inline-flex; align-items: center; gap: 6px;
+  cursor: pointer; list-style: none; width: fit-content;
+  font-size: var(--fs-xs); font-weight: 600; color: var(--text-secondary);
+}
+.a11y__summary::-webkit-details-marker { display: none; }
+.a11y__summary .icon { width: 1.05em; height: 1.05em; color: var(--team-accent); flex-shrink: 0; }
+.a11y__summary:focus-visible { outline: 2px solid var(--team-accent); outline-offset: 3px; border-radius: 4px; }
+.a11y__panel {
+  margin-top: var(--sp-3); max-width: 70ch;
+  padding: var(--sp-4); border: 1px solid var(--border); border-left: 3px solid var(--team-accent);
+  border-radius: var(--radius-sm); background: var(--surface-1);
+  font-size: var(--fs-xs); line-height: 1.55; color: var(--text-secondary);
+}
+.a11y__intro { margin: 0 0 var(--sp-3); }
+.a11y__list { margin: 0 0 var(--sp-3); padding-left: 1.1rem; display: flex; flex-direction: column; gap: 5px; }
+.a11y__list strong { color: var(--text-primary); }
+.a11y__panel code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92em; background: var(--surface-2); padding: 0 4px; border-radius: 4px; }
+.a11y__note { margin: 0; color: var(--text-muted); }
 
 .section-title { font-size: var(--fs-md); font-weight: 800; letter-spacing: -0.01em; margin: 0 0 var(--sp-3); display: flex; align-items: center; gap: var(--sp-2); }
 .section-title::before { content: ""; width: 4px; height: 1.1em; border-radius: 2px; background: var(--g, var(--team-accent)); transition: background var(--transition); }
