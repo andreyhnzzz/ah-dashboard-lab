@@ -1,45 +1,96 @@
 /* ============================================================================
  * view-fanatico.js — Apartado 2.4: Dashboard del Fanático Incondicional
+ * ----------------------------------------------------------------------------
  * Técnica: tematización dinámica (variables CSS por equipo) + persistencia del
  * favorito en localStorage. El selector de favorito vive en la topbar (global).
- * Resiliencia: si falta el grupo o los partidos, se dibuja con guiones y avisos
- * locales; nunca queda vacío.
+ *
+ * Diseño: estética de transmisión del Mundial 2026 (ver referencias de la
+ * marca) — cabecera tipo "scoreboard" con los colores del equipo, y una
+ * comparativa cara a cara del favorito contra el líder de su grupo con barras
+ * de estadísticas, todo con datos REALES de la API (grupos + partidos).
+ *
+ * Resiliencia: si falta el grupo o los partidos, se dibuja con guiones y
+ * avisos locales; nunca queda vacío.
  * ==========================================================================*/
 (function (App) {
   'use strict';
   var C = App.common, S = C.store;
 
-  function tile(label, value, hint, cls){
-    return '<div class="stat-tile '+(cls||'')+'">'+
-      '<span class="stat-tile__label">'+C.esc(label)+'</span>'+
-      '<span class="stat-tile__value">'+value+'</span>'+
-      (hint?'<span class="stat-tile__hint">'+hint+'</span>':'')+'</div>';
-  }
-
+  /* --- Cabecera broadcast: bandas de color del equipo + emblema + posición -- */
   function heroHtml(team, row){
+    var color = team.color || '#4a2a86';
     var pos = row ? row.position : '—';
     var qualifies = row && row.position<=2;
-    var badge = row ? '<span class="badge-qualify '+(qualifies?'is-in':'is-out')+'">'+
-      (qualifies?(C.icon('check')+' Zona de clasificación'):'Fuera de zona')+'</span>' : '';
-    return '<section class="hero fade-in">'+
-      '<span class="hero__flag">'+C.teamFlagHtml(team.id)+'</span>'+
-      '<div class="hero__meta"><h2 class="hero__team">'+C.esc(team.name)+'</h2>'+
-        '<span class="hero__group">Grupo '+C.esc(team.group)+' · Mundial 2026</span>'+badge+'</div>'+
-      '<div class="hero__position"><div class="hero__position-num">'+C.esc(pos)+(row?'º':'')+'</div>'+
-        '<div class="hero__position-label">Posición de grupo</div></div></section>';
+    var badge = row
+      ? '<span class="fan-hero__badge '+(qualifies?'is-in':'is-out')+'">'+
+          (qualifies ? (C.icon('check')+' Zona de clasificación') : 'Fuera de zona')+'</span>'
+      : '';
+    return '<section class="fan-hero" style="--team:'+color+';--team-ink:'+C.contrastText(color)+'">'+
+      '<div class="fan-hero__side">'+
+        '<span class="fan-hero__flag">'+C.teamFlagHtml(team.id)+'</span>'+
+        '<div class="fan-hero__id">'+
+          '<h2 class="fan-hero__name">'+C.esc(team.name)+'</h2>'+
+          '<span class="fan-hero__group">Grupo '+C.esc(team.group)+' · Copa Mundial 26</span>'+
+          badge+
+        '</div>'+
+      '</div>'+
+      '<div class="fan-hero__capsule">'+
+        '<img class="fan-hero__mark" src="assets/emblem.png" alt="">'+
+        '<div class="fan-hero__pos"><span class="fan-hero__pos-num">'+C.esc(pos)+'</span>'+
+          '<span class="fan-hero__pos-label">'+(row?'° de grupo':'Sin datos')+'</span></div>'+
+      '</div>'+
+    '</section>';
   }
 
-  function statRow(row, favId){
-    if(!row){ return '<div class="stat-row">'+tile('Puntos','—','Sin datos de grupo','stat-tile--accent')+
-      tile('Goles a favor','—','')+tile('Goles en contra','—','')+tile('Diferencia','—','')+'</div>'; }
-    var rec = C.teamRecord(favId); // W/D/L derivado de los partidos reales
-    var gd=row.gd, cls=gd>0?'pos-good':(gd<0?'pos-bad':''), txt=(gd>0?'+':'')+gd;
-    var recTxt='PJ '+rec.played+' · '+rec.w+'G '+rec.d+'E '+rec.l+'P';
-    return '<div class="stat-row">'+
-      tile('Puntos', String(row.pts), recTxt, 'stat-tile--accent')+
-      tile('Goles a favor', String(row.gf), 'Anotados')+
-      tile('Goles en contra', String(row.ga), 'Recibidos')+
-      tile('Diferencia', '<span class="'+cls+'">'+txt+'</span>', 'GF − GC')+'</div>';
+  /* --- Barras comparativas cara a cara (favorito vs. rival del grupo) -------
+   * Referencia: el panel de estadísticas de transmisión (Possession, Shots…),
+   * con el valor de cada equipo a los lados y barras que crecen desde el
+   * centro. Aquí se compara con datos reales del grupo. --------------------*/
+  function statBars(favRow, favTeam, rivalRow, rivalTeam){
+    var favRec = C.teamRecord(favTeam.id);
+    var rivalRec = C.teamRecord(rivalTeam.id);
+    var favColor = favTeam.color || '#4a2a86';
+    var rivalColor = rivalTeam.color || '#c62368';
+
+    var stats = [
+      { label: 'Puntos',          l: favRow.pts,      r: rivalRow.pts },
+      { label: 'Ganados',         l: favRec.w,        r: rivalRec.w },
+      { label: 'Goles a favor',   l: favRow.gf,       r: rivalRow.gf },
+      { label: 'Goles en contra', l: favRow.ga,       r: rivalRow.ga },
+      { label: 'Diferencia',      l: favRow.gd,       r: rivalRow.gd, signed: true }
+    ];
+
+    var rows = stats.map(function(s){
+      // Escala por el máximo del par (magnitudes; para "Diferencia" se usa el
+      // valor absoluto, de modo que un -4 pinte una barra tan larga como un +4).
+      var la = Math.abs(s.l), ra = Math.abs(s.r), max = Math.max(la, ra, 1);
+      var lw = Math.round(la/max*100), rw = Math.round(ra/max*100);
+      var lead = s.l===s.r ? '' : (s.l>s.r ? ' is-lead-l' : ' is-lead-r');
+      var fmt = function(v){ return s.signed && v>0 ? '+'+v : String(v); };
+      return '<div class="statbar'+lead+'">'+
+        '<span class="statbar__val statbar__val--l">'+fmt(s.l)+'</span>'+
+        '<span class="statbar__track statbar__track--l">'+
+          '<span class="statbar__fill" style="width:'+lw+'%;background:'+favColor+'"></span></span>'+
+        '<span class="statbar__label">'+C.esc(s.label)+'</span>'+
+        '<span class="statbar__track statbar__track--r">'+
+          '<span class="statbar__fill" style="width:'+rw+'%;background:'+rivalColor+'"></span></span>'+
+        '<span class="statbar__val statbar__val--r">'+fmt(s.r)+'</span>'+
+      '</div>';
+    }).join('');
+
+    return '<section class="card fade-in">'+
+      '<h3 class="section-title" style="--g:'+C.groupColor(favTeam.group)+'">Comparativa de grupo</h3>'+
+      '<div class="statbars">'+
+        '<div class="statbars__head">'+
+          '<span class="statbars__team" style="color:'+favColor+'">'+C.teamFlagHtml(favTeam.id)+' '+C.esc(favTeam.code||favTeam.name)+'</span>'+
+          '<span class="statbars__vs">vs</span>'+
+          '<span class="statbars__team" style="color:'+rivalColor+'">'+C.esc(rivalTeam.code||rivalTeam.name)+' '+C.teamFlagHtml(rivalTeam.id)+'</span>'+
+        '</div>'+
+        rows+
+      '</div>'+
+      '<p class="statbars__foot muted">Comparado con '+C.esc(rivalTeam.name)+', '+
+        (rivalRow.position===1 ? 'líder del grupo' : (rivalRow.position+'° del grupo'))+'.</p>'+
+    '</section>';
   }
 
   function standings(list, favId){
@@ -86,8 +137,8 @@
       // todavía no cargó equipos: mostrar esqueleto, NO el estado "sin favorito"
       // (que sería engañoso — el favorito sí existe, solo falta el dato).
       if(favId && !S.ready.teams){
-        el.innerHTML = '<div class="skeleton skeleton--tile" style="height:150px"></div>'+
-          '<div class="stat-row">'+C.skeletonCards(4)+'</div>';
+        el.innerHTML = '<div class="skeleton skeleton--tile" style="height:120px"></div>'+
+          '<div class="skeleton skeleton--tile" style="height:220px"></div>';
         return;
       }
 
@@ -100,11 +151,27 @@
           'El panel se personaliza y el color de acento cambia según el equipo.</p></div>';
         return;
       }
+
       var list = S.groupByLetter[team.group] || [];
       var row = null; for(var i=0;i<list.length;i++){ if(list[i].team_id===favId){ row=list[i]; break; } }
+
+      // Rival de la comparativa: el líder del grupo; si el favorito ES el
+      // líder, se compara contra el segundo.
+      var rivalRow = null, rivalTeam = null;
+      if(row && list.length>1){
+        rivalRow = (row.position===1) ? list[1] : list[0];
+        rivalTeam = S.teamById[rivalRow.team_id];
+      }
+
       var teamMatches = S.matchesByTeam[favId] || [];
+      var comparison = (row && rivalRow && rivalTeam)
+        ? statBars(row, team, rivalRow, rivalTeam)
+        : '<section class="card"><h3 class="section-title">Comparativa de grupo</h3>'+
+          '<p class="notice">Sin datos de grupo suficientes para la comparativa.</p></section>';
+
       el.innerHTML =
-        heroHtml(team, row) + statRow(row, favId) +
+        heroHtml(team, row) +
+        comparison +
         '<div class="split">'+
           '<section class="card fade-in"><h3 class="section-title" style="--g:'+C.groupColor(team.group)+'">Grupo '+C.esc(team.group)+'</h3>'+standings(list, favId)+'</section>'+
           '<section class="card fade-in"><h3 class="section-title">Partidos de '+C.esc(team.name)+'</h3>'+matches(teamMatches, team)+'</section>'+
