@@ -70,25 +70,68 @@ select { font: inherit; font-size: var(--fs-sm); padding: 6px var(--sp-3); borde
 .tag { display: inline-block; font-size: var(--fs-xs); font-weight: 700; padding: 1px 8px; border-radius: 999px; }
 .tag--pending { color: var(--text-muted); border: 1px dashed var(--border-strong); }
 
-/* --- Stat tiles / hero fanático (compartidos con la vista fanático) --- */
-.stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--sp-3); }
-.stat-tile { background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--sp-4); display: flex; flex-direction: column; gap: 4px; }
-.stat-tile__label { font-size: var(--fs-xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
-.stat-tile__value { font-size: 2rem; font-weight: 700; line-height: 1.1; }
-.stat-tile__hint { font-size: var(--fs-xs); color: var(--text-secondary); }
-.stat-tile--accent { border-top: 3px solid var(--team-accent); }
 .pos-good { color: var(--good); } .pos-bad { color: var(--danger); }
 
-.hero { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-5); background: linear-gradient(120deg, var(--team-tint-strong), var(--team-tint)), var(--surface-1); border: 1px solid var(--border); border-left: 6px solid var(--team-accent); border-radius: var(--radius-lg); padding: var(--sp-5); transition: border-color var(--transition), background var(--transition); }
-.hero__flag { font-size: 3.2rem; line-height: 1; color: var(--team-accent); }
-.hero__meta { display: flex; flex-direction: column; gap: 4px; }
-.hero__team { margin: 0; font-size: var(--fs-xl); font-weight: 700; }
-.hero__group { font-size: var(--fs-sm); color: var(--text-secondary); }
-.hero__position { margin-left: auto; text-align: center; }
-.hero__position-num { font-size: var(--fs-hero); font-weight: 700; line-height: 1; }
-.hero__position-label { font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
-.badge-qualify { display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-xs); font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; width: fit-content; }
-.badge-qualify.is-in { color: var(--good); } .badge-qualify.is-out { color: var(--text-muted); }
+/* --- Fanático: cabecera "scoreboard" broadcast ---------------------------
+ * Banda oscura con el bloque de color del equipo a la izquierda y la cápsula
+ * del emblema + posición a la derecha, al estilo de las tarjetas de la marca. */
+.fan-hero {
+  display: flex; align-items: stretch; gap: 0; overflow: hidden;
+  background: var(--score-bg); border-radius: var(--radius-lg);
+  box-shadow: 0 4px 18px rgba(0,0,0,0.25);
+  animation: scorecardInLeft 0.5s cubic-bezier(.22,.8,.28,1) both;
+}
+.fan-hero__side {
+  flex: 1; display: flex; align-items: center; gap: var(--sp-4);
+  padding: var(--sp-5); min-width: 0;
+  background: linear-gradient(100deg, var(--team) 0%, var(--team) 58%, transparent 100%);
+  color: var(--team-ink);
+}
+.fan-hero__flag { flex-shrink: 0; }
+.fan-hero__flag .flag-ico { width: 56px; height: auto; border-radius: 6px; box-shadow: 0 0 0 2px rgba(255,255,255,0.35); }
+.fan-hero__id { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.fan-hero__name { margin: 0; font-size: clamp(1.6rem, 3.4vw, 2.4rem); line-height: 1; text-transform: uppercase; letter-spacing: -0.01em; }
+.fan-hero__group { font-size: var(--fs-sm); font-weight: 600; opacity: 0.9; }
+.fan-hero__badge { display: inline-flex; align-items: center; gap: 5px; width: fit-content; font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; padding: 3px 10px; border-radius: 999px; background: rgba(0,0,0,0.28); }
+.fan-hero__badge .icon { width: 0.95em; height: 0.95em; }
+.fan-hero__badge.is-out { opacity: 0.8; }
+.fan-hero__capsule {
+  flex-shrink: 0; display: flex; align-items: center; gap: var(--sp-4);
+  padding: var(--sp-4) var(--sp-5); color: #fff;
+}
+.fan-hero__mark { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; }
+.fan-hero__pos { display: flex; flex-direction: column; align-items: center; line-height: 1; }
+.fan-hero__pos-num { font-size: 2.6rem; font-family: var(--font-display); }
+.fan-hero__pos-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--score-fg-muted); margin-top: 3px; }
+@media (max-width: 620px) {
+  .fan-hero { flex-direction: column; }
+  .fan-hero__capsule { justify-content: center; }
+}
+
+/* --- Fanático: barras comparativas de estadísticas -----------------------
+ * Referencia: panel de estadísticas de transmisión, con el valor de cada
+ * equipo a los lados y barras que crecen desde el centro hacia afuera. */
+.statbars { display: flex; flex-direction: column; gap: var(--sp-3); }
+.statbars__head { display: flex; align-items: center; justify-content: center; gap: var(--sp-3); font-weight: 700; text-transform: uppercase; font-size: var(--fs-sm); margin-bottom: var(--sp-1); }
+.statbars__team { display: inline-flex; align-items: center; gap: 6px; }
+.statbars__team .flag-ico { width: 22px; height: auto; border-radius: 3px; }
+.statbars__vs { color: var(--text-muted); font-size: var(--fs-xs); }
+.statbar { display: grid; grid-template-columns: 2.2rem 1fr auto 1fr 2.2rem; align-items: center; gap: var(--sp-2); }
+.statbar__val { font-variant-numeric: tabular-nums; font-weight: 700; font-family: var(--font-display); }
+.statbar__val--l { text-align: right; }
+.statbar__val--r { text-align: left; }
+.statbar__label { font-size: var(--fs-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); white-space: nowrap; padding: 0 var(--sp-2); text-align: center; }
+.statbar__track { height: 9px; border-radius: 999px; background: var(--surface-2); overflow: hidden; display: flex; }
+.statbar__track--l { justify-content: flex-end; }
+.statbar__track--r { justify-content: flex-start; }
+.statbar__fill { height: 100%; border-radius: 999px; animation: statbarGrow 0.6s cubic-bezier(.22,.8,.28,1) both; }
+.statbar.is-lead-l .statbar__val--l, .statbar.is-lead-r .statbar__val--r { color: var(--text-primary); }
+.statbar:not(.is-lead-l) .statbar__val--l, .statbar:not(.is-lead-r) .statbar__val--r { color: var(--text-muted); }
+.statbars__foot { margin: var(--sp-3) 0 0; font-size: var(--fs-xs); }
+@keyframes statbarGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.statbar__track--l .statbar__fill { transform-origin: right; }
+.statbar__track--r .statbar__fill { transform-origin: left; }
+@media (max-width: 480px) { .statbar { grid-template-columns: 1.6rem 1fr auto 1fr 1.6rem; gap: 4px; } .statbar__label { font-size: 0.6rem; padding: 0 4px; } }
 
 .split { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--sp-5); align-items: start; }
 
