@@ -41,7 +41,7 @@ Guía completa del login (estados, claves de `localStorage`, cómo probar 401/42
 | Tecnología | Uso |
 |---|---|
 | [JavaScript](js/app.js) | Router, estado y lógica de negocio (sin frameworks) |
-| [CSS](css/tokens.css) | Design tokens, temas y paleta oficial del Mundial |
+| [CSS](css/tokens.css) | Design tokens, tipografía autoalojada (Fredoka + Noto Sans), animaciones y paleta oficial |
 | JWT + Fetch | Autenticación y consumo de la [API del Mundial 2026](https://worldcup26.ir) |
 | LocalStorage | Caché, favorito y sesión de dispositivo |
 | IntersectionObserver | Scroll infinito del calendario |
