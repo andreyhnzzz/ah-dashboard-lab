@@ -1,0 +1,65 @@
+/* ============================================================================
+ * fonts.css — Tipografías autoalojadas (funcionan sin conexión)
+ * ----------------------------------------------------------------------------
+ * La identidad del Mundial 2026 usa el "FWC26 Event Typeface" (propietario de
+ * la FIFA, no distribuible) para titulares y "Noto Sans" como tipografía de
+ * soporte. Aquí se aproxima ese sistema con dos fuentes libres (SIL OFL),
+ * autoalojadas como .woff2 para no depender de ningún CDN:
+ *   - Fredoka  → display redondeado-geométrico, el pariente libre más cercano
+ *                al event typeface (titulares, marcadores, nav, wordmark).
+ *   - Noto Sans → la MISMA tipografía de soporte oficial, para el cuerpo.
+ * Ver assets/fonts/OFL.txt para la licencia de ambas familias.
+ * ==========================================================================*/
+
+/* --- Fredoka (display) --------------------------------------------------- */
+@font-face {
+  font-family: "Fredoka";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("../assets/fonts/fredoka-500.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Fredoka";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("../assets/fonts/fredoka-600.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Fredoka";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../assets/fonts/fredoka-700.woff2") format("woff2");
+}
+
+/* --- Noto Sans (cuerpo) -------------------------------------------------- */
+@font-face {
+  font-family: "Noto Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../assets/fonts/noto-sans-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Noto Sans";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("../assets/fonts/noto-sans-500.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Noto Sans";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("../assets/fonts/noto-sans-600.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Noto Sans";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../assets/fonts/noto-sans-700.woff2") format("woff2");
+}
