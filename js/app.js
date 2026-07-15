@@ -55,7 +55,6 @@
 
       el.setAttribute('aria-busy','false');
       view.render(el);
-      el.classList.remove('view--leaving');
       el.focus({ preventScroll: true });
 
       // Recuerda la vista activa: si el usuario hace un refresco completo del
@@ -65,14 +64,39 @@
       App.storage.setLastView(id);
     }
 
-    // Pequeña transición de salida/entrada entre vistas (no aplica en la
-    // primera carga, ni si el usuario prefiere menos movimiento).
+    // Transición de "explosión de colores" horizontal entre vistas (no aplica
+    // en la primera carga, ni si el usuario prefiere menos movimiento).
     var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if(isFirst || reduceMotion){ swap(); }
-    else {
-      el.classList.add('view--leaving');
-      setTimeout(swap, 150);
-    }
+    if(isFirst || reduceMotion){ swap(); return; }
+    playWipe(function(){
+      swap();
+      el.classList.remove('view--entering');
+      void el.offsetWidth;          // reinicia la animación de entrada
+      el.classList.add('view--entering');
+    });
+  }
+
+  // Reproduce el overlay de colores oficiales: estalla desde el centro para
+  // cubrir (llama a onCovered en el punto de cobertura total) e implosiona de
+  // vuelta para revelar la vista nueva. Tolerante a llamadas rápidas seguidas.
+  var wipeBusy = false;
+  function playWipe(onCovered){
+    var wipe = K.$('wc-wipe');
+    if(!wipe || wipeBusy){ onCovered(); return; }
+    wipeBusy = true;
+    wipe.classList.remove('is-revealing');
+    void wipe.offsetWidth;
+    wipe.classList.add('is-covering');
+    setTimeout(function(){
+      onCovered();                              // vista ya cubierta: intercambiar
+      wipe.classList.remove('is-covering');
+      void wipe.offsetWidth;
+      wipe.classList.add('is-revealing');
+      setTimeout(function(){
+        wipe.classList.remove('is-revealing');
+        wipeBusy = false;
+      }, 340);
+    }, 300);
   }
   App.app = App.app || {};
   App.app.go = go;
