@@ -288,12 +288,20 @@
       statusLine = '<div class="scorecard__status" style="--g:'+(opts.statusColor || 'var(--text-muted)')+'">'+esc(opts.statusText)+
         (opts.resultText ? ' <span class="scorecard__result '+(opts.resultClass||'')+'">'+esc(opts.resultText)+'</span>' : '')+'</div>';
     }
-    return '<div class="scorecard fade-in">'+
+    // La cápsula central lleva DOS marcas superpuestas: la copa (worldcup) que
+    // es el ORIGEN de la explosión, y el emblema oficial que aparece al final.
+    // La animación de entrada (css: scorecardReveal) hace emerger las bandas de
+    // color desde el centro —la copa— y luego cruza-funde copa → emblema.
+    return '<div class="scorecard">'+
       '<div class="scorecard__bar">'+
         '<span class="scorecard__side scorecard__side--home'+(opts.favId===opts.homeId?' is-fav':'')+'" style="background:'+homeColor+';color:'+contrastText(homeColor)+'">'+
           teamFlagHtml(opts.homeId, opts.homeLabel)+'<span class="scorecard__name">'+esc(homeName)+'</span>'+
         '</span>'+
-        '<span class="scorecard__capsule"><img class="scorecard__mark" src="assets/emblem.png" alt="">'+
+        '<span class="scorecard__capsule">'+
+          '<span class="scorecard__marks" aria-hidden="true">'+
+            '<img class="scorecard__mark scorecard__mark--trophy" src="assets/trophy-sm.png" alt="">'+
+            '<img class="scorecard__mark scorecard__mark--emblem" src="assets/emblem-sm.png" alt="">'+
+          '</span>'+
           '<span class="scorecard__score">'+scoreInner+'</span></span>'+
         '<span class="scorecard__side scorecard__side--away'+(opts.favId===opts.awayId?' is-fav':'')+'" style="background:'+awayColor+';color:'+contrastText(awayColor)+'">'+
           '<span class="scorecard__name">'+esc(awayName)+'</span>'+teamFlagHtml(opts.awayId, opts.awayLabel)+
