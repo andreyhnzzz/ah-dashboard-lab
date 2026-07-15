@@ -31,6 +31,9 @@ comerciales, exclusivamente con fines educativos y de práctica de desarrollo
 web. No existe afiliación, patrocinio ni respaldo de la FIFA hacia este
 proyecto.
 
-Tipografías: las fuentes autoalojadas en assets/fonts/ (Fredoka y Noto Sans)
-se distribuyen bajo la SIL Open Font License 1.1 — ver assets/fonts/OFL.txt.
-No son la tipografía propietaria de la FIFA; se usan como aproximación libre.
+Tipografías: "Noto Sans" (cuerpo/números) se distribuye bajo la SIL Open Font
+License 1.1. La familia de titular "FWC2026 UltraCondensed" es una recreación
+de la comunidad de USO PERSONAL / NO COMERCIAL (no OFL, no redistribuible),
+usada aquí únicamente por ser este un proyecto académico sin fines de lucro.
+Ver assets/fonts/OFL.txt y los license-*.txt de esa carpeta. Estas fuentes NO
+deben reutilizarse con fines comerciales ni redistribuirse por separado.

@@ -1,30 +1,38 @@
 /* ============================================================================
- * typography.css — Aplicación de la tipografía de marca (cargado DE ÚLTIMO)
+ * typography.css — Aplicación del sistema tipográfico de marca (cargado ÚLTIMO)
  * ----------------------------------------------------------------------------
- * TODOS los titulares, marcadores, etiquetas en mayúscula y elementos de
- * identidad usan la fuente display (Fredoka, el pariente libre más cercano al
- * "FWC26 Event Typeface"). El cuerpo usa Noto Sans (--font-sans, en el body).
+ * Reglas tomadas de la guía oficial del Mundial 2026:
+ *   1. "FWC26" (Event Typeface, condensado) SOLO para texto GRANDE: titulares,
+ *      nombres/códigos de equipo, letras de grupo. La propia guía advierte que
+ *      "es apto para texto grande, pero no para texto pequeño".
+ *   2. Todo el texto pequeño de interfaz (botones, tags, etiquetas, nav) se
+ *      queda en Noto Sans para no perder legibilidad.
+ *   3. Los NÚMEROS (marcadores, posiciones, KPIs, estadísticas) van en
+ *      "Noto Sans" en negrita — la guía marca los dígitos como Noto Sans Bold.
  *
- * Se carga al final de la cadena de estilos a propósito: varios componentes
- * usan la abreviatura `font: inherit` (p. ej. .btn, .group-tab, .venue), que
- * reinicia font-family; al declararse aquí, con la misma especificidad pero
- * más tarde en el cascade, esta asignación gana y ningún control cae en la
- * fuente del sistema —el contraste "Noto Sans + system-ui" era justo lo que
- * se veía mal—. Fredoka pesa hasta 700; se normaliza a ese máximo para no
- * pedir un peso inexistente (que el navegador "faux-boldearía" y ensuciaría).
+ * Se carga al final del cascade a propósito: varios componentes usan la
+ * abreviatura `font: inherit` (.btn, .group-tab, .venue…) que reinicia la
+ * familia; declararlo aquí, más tarde y con igual especificidad, garantiza que
+ * gane y ningún elemento caiga en la fuente equivocada.
  * ==========================================================================*/
-.sidebar__title, .sidebar__sub, .topbar__title, .section-title,
-.hero-lg__title, .kpi__value, .kpi__label, .module-card__title, .venue__name,
-.acol__stage, .tl-item__idx, .group-tab, .matrix__corner, .matrix__colh,
-.matrix__rowh, .matrix__result, .scorecard__side, .scorecard__capsule,
-.scorecard__status, .scorecard__vs, .nav__label, .auth-card__title,
-.auth-field__label, .tag, .pill, .btn, .pos-pill,
-.fan-hero__name, .fan-hero__group, .fan-hero__badge, .fan-hero__pos-num,
-.statbars__team, .statbars__vs, .statbar__val, .statbar__label {
+
+/* --- 1) Display (FWC26 condensado) — solo texto grande de titular --------- */
+.sidebar__title, .topbar__title, .section-title, .hero-lg__title,
+.auth-card__title, .fan-hero__name, .scorecard__name, .statbars__team,
+.matrix__corner, .group-tab {
   font-family: var(--font-display);
-}
-.topbar__title, .hero-lg__title, .section-title, .sidebar__title,
-.matrix__result, .scorecard__capsule, .kpi__value, .fan-hero__name,
-.fan-hero__pos-num, .tl-item__idx, .group-tab, .matrix__corner {
   font-weight: 700;
+  letter-spacing: 0.01em;          /* la condensada respira mejor sin tracking negativo */
+  text-transform: uppercase;
 }
+
+/* --- 2) Números en Noto Sans Bold (marcadores, posiciones, KPIs, stats) --- */
+.kpi__value, .tl-item__idx, .matrix__result, .scorecard__num,
+.fan-hero__pos-num, .statbar__val, .pos-pill, .standings td {
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+}
+.kpi__value, .tl-item__idx, .matrix__result, .scorecard__num,
+.fan-hero__pos-num, .statbar__val { font-weight: 700; }
+
+/* --- 3) El resto del texto de interfaz permanece en Noto Sans (body). ----- */

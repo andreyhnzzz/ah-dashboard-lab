@@ -1,40 +1,34 @@
 /* ============================================================================
  * fonts.css — Tipografías autoalojadas (funcionan sin conexión)
  * ----------------------------------------------------------------------------
- * La identidad del Mundial 2026 usa el "FWC26 Event Typeface" (propietario de
- * la FIFA, no distribuible) para titulares y "Noto Sans" como tipografía de
- * soporte. Aquí se aproxima ese sistema con dos fuentes libres (SIL OFL),
- * autoalojadas como .woff2 para no depender de ningún CDN:
- *   - Fredoka  → display redondeado-geométrico, el pariente libre más cercano
- *                al event typeface (titulares, marcadores, nav, wordmark).
- *   - Noto Sans → la MISMA tipografía de soporte oficial, para el cuerpo.
- * Ver assets/fonts/OFL.txt para la licencia de ambas familias.
+ * Sistema tipográfico oficial del Mundial 2026, tal como la guía de marca:
+ *   - Display  → "FWC2026 UltraCondensed" (el Event Typeface: condensado, alto,
+ *                impactante). Titulares, marcadores, nav, códigos de equipo.
+ *   - Cuerpo/números → "Noto Sans" (la tipografía de soporte oficial). El
+ *                cuerpo del texto y los NÚMEROS de marcador (la guía marca los
+ *                dígitos como "Noto Sans Bold").
+ *
+ * Ambas se autoalojan como .woff2 para no depender de ningún CDN.
+ *
+ * LICENCIA: la familia FWC2026 UltraCondensed es una recreación de la
+ * comunidad de USO PERSONAL / NO COMERCIAL (no OFL, no redistribuible). Se usa
+ * aquí únicamente por tratarse de un proyecto académico sin fines de lucro
+ * (ISW-521). Noto Sans es SIL OFL 1.1. Ver assets/fonts/ para las licencias.
  * ==========================================================================*/
 
-/* --- Fredoka (display) --------------------------------------------------- */
+/* --- FWC2026 UltraCondensed (display / event typeface) -------------------
+ * Un solo archivo físico (peso "Medium"). El rango font-weight: 100 900 le
+ * dice al navegador que este archivo cubre TODOS los pesos, de modo que nunca
+ * sintetice un "faux bold" (que en una condensada se ve sucio y deforme). */
 @font-face {
-  font-family: "Fredoka";
+  font-family: "FWC26";
   font-style: normal;
-  font-weight: 500;
+  font-weight: 100 900;
   font-display: swap;
-  src: url("../assets/fonts/fredoka-500.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Fredoka";
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url("../assets/fonts/fredoka-600.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Fredoka";
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url("../assets/fonts/fredoka-700.woff2") format("woff2");
+  src: url("../assets/fonts/fwc26-ultracondensed.woff2") format("woff2");
 }
 
-/* --- Noto Sans (cuerpo) -------------------------------------------------- */
+/* --- Noto Sans (cuerpo + números) --------------------------------------- */
 @font-face {
   font-family: "Noto Sans";
   font-style: normal;
