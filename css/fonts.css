@@ -28,6 +28,18 @@
   src: url("../assets/fonts/fwc26-ultracondensed.woff2") format("woff2");
 }
 
+/* --- FIFA 26 (logotipo) — solo para el slogan/wordmark "WE ARE 26" -------
+ * Fuente de logotipo, muy pesada y redondeada (la de "WE ARE 26"). Uso muy
+ * puntual: NO es para texto corrido. Misma condición de licencia de uso
+ * personal / no comercial que FWC26 (ver assets/fonts/). */
+@font-face {
+  font-family: "FIFA26 Logo";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("../assets/fonts/fifa26-logo.woff2") format("woff2");
+}
+
 /* --- Noto Sans (cuerpo + números) --------------------------------------- */
 @font-face {
   font-family: "Noto Sans";
