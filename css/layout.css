@@ -9,6 +9,10 @@ body {
   background: var(--surface-page); line-height: 1.5; -webkit-font-smoothing: antialiased;
 }
 
+/* La tipografía de marca (fuente display en titulares/marcadores) se define
+ * en css/typography.css, que se carga DE ÚLTIMO para ganarle en el cascade a
+ * los componentes que usan `font: inherit` (p. ej. .btn, .group-tab). */
+
 .skip-link {
   position: absolute; left: -999px; top: 0; z-index: 200;
   background: var(--team-accent); color: var(--team-accent-contrast);
@@ -67,8 +71,39 @@ body {
 .banners { padding: 0 var(--sp-5); }
 .banners:empty { display: none; }
 
-.view { flex: 1; padding: var(--sp-5); display: flex; flex-direction: column; gap: var(--sp-5); transition: opacity 0.15s ease, transform 0.15s ease; }
-.view--leaving { opacity: 0; transform: translateY(6px); }
+.view { flex: 1; padding: var(--sp-5); display: flex; flex-direction: column; gap: var(--sp-5); }
+
+/* ---------------------------------------------------------------------------
+ * Transición entre vistas: "explosión" horizontal de los colores oficiales.
+ * El overlay (bandas verticales de la paleta oficial) estalla desde el centro
+ * hacia los bordes para cubrir, y luego implosiona de vuelta al centro para
+ * revelar la vista nueva — un wipe de transmisión deportiva, 100% horizontal.
+ * ------------------------------------------------------------------------- */
+.wc-wipe {
+  position: fixed; inset: 0; z-index: 150; pointer-events: none;
+  display: grid; place-items: stretch;
+  clip-path: inset(0 50% 0 50%);
+  opacity: 0; visibility: hidden;
+}
+.wc-wipe__bands {
+  display: block; width: 100%; height: 100%;
+  background: repeating-linear-gradient(90deg,
+    var(--wc-red) 0 8%, var(--wc-magenta) 8% 16%, var(--wc-purple) 16% 24%,
+    var(--wc-violet) 24% 32%, var(--wc-blue) 32% 40%, var(--wc-sky) 40% 48%,
+    var(--wc-teal) 48% 56%, var(--wc-green) 56% 64%, var(--wc-lime) 64% 72%,
+    var(--wc-magenta) 72% 80%, var(--wc-violet) 80% 88%, var(--wc-red) 88% 100%);
+}
+.wc-wipe.is-covering { opacity: 1; visibility: visible; animation: wcExplode 0.30s cubic-bezier(.5,0,.2,1) forwards; }
+.wc-wipe.is-revealing { opacity: 1; visibility: visible; animation: wcImplode 0.34s cubic-bezier(.5,0,.2,1) forwards; }
+.wc-wipe.is-covering .wc-wipe__bands { animation: wcBandsRush 0.30s linear forwards; }
+.wc-wipe.is-revealing .wc-wipe__bands { animation: wcBandsRush 0.34s linear forwards; }
+@keyframes wcExplode { from { clip-path: inset(0 50% 0 50%); } to { clip-path: inset(0 0 0 0); } }
+@keyframes wcImplode { from { clip-path: inset(0 0 0 0); } to { clip-path: inset(0 50% 0 50%); } }
+@keyframes wcBandsRush { from { transform: translateX(-6%); } to { transform: translateX(6%); } }
+
+/* Entrada de la vista nueva tras el wipe. */
+.view--entering { animation: viewEnter 0.32s ease both; }
+@keyframes viewEnter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
 /* Franja de color oficial, como marco de sección en las referencias del
  * Mundial 2026 (barras superior/inferior de la identidad de transmisión).
@@ -77,6 +112,11 @@ body {
 .wc-bar--reverse { animation-direction: reverse; }
 @keyframes wcBarShift { to { background-position: -200% 0; } }
 @media (max-width: 560px) { .wc-bar { margin: 0 var(--sp-4); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .wc-wipe { display: none !important; }
+  .view--entering, .wc-bar { animation: none !important; }
+}
 
 .app-footer {
   padding: var(--sp-4) var(--sp-5); border-top: 1px solid var(--border);
