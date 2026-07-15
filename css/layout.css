@@ -38,7 +38,19 @@ body {
 .sidebar__logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .sidebar__title { display: block; font-size: var(--fs-md); font-weight: 800; letter-spacing: -0.01em; text-transform: uppercase; }
 .sidebar__sub { display: block; font-size: var(--fs-xs); color: var(--text-muted); }
-.sidebar__foot { margin-top: auto; font-size: var(--fs-xs); color: var(--text-muted); }
+.sidebar__slogan { margin-top: auto; padding-top: var(--sp-4); }
+.sidebar__foot { font-size: var(--fs-xs); color: var(--text-muted); margin: var(--sp-3) 0 0; }
+
+/* Slogan oficial "WE ARE 26" con la fuente de logotipo (uso puntual). */
+.slogan {
+  display: inline-block; font-family: var(--font-logo); font-weight: 700;
+  line-height: 0.82; font-size: 2.2rem; letter-spacing: 0.01em;
+  color: var(--text-primary);
+  background: var(--wc-gradient); background-size: 200% 100%;
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  animation: wcBarShift 9s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) { .slogan { animation: none; } }
 
 .nav { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
 .nav__item {
@@ -74,32 +86,42 @@ body {
 .view { flex: 1; padding: var(--sp-5); display: flex; flex-direction: column; gap: var(--sp-5); }
 
 /* ---------------------------------------------------------------------------
- * Transición entre vistas: "explosión" horizontal de los colores oficiales.
- * El overlay (bandas verticales de la paleta oficial) estalla desde el centro
- * hacia los bordes para cubrir, y luego implosiona de vuelta al centro para
- * revelar la vista nueva — un wipe de transmisión deportiva, 100% horizontal.
+ * Transición entre vistas = AMPLIFY PATTERN (identidad oficial del Mundial).
+ * El overlay muestra el patrón "amplify" (eco concéntrico del 26 en la paleta,
+ * assets/pattern-amplify.svg) que se AMPLIFICA con zoom desde el centro para
+ * cubrir, y sigue expandiéndose para revelar la vista nueva. El clip-path
+ * abre/cierra desde el centro (explosión horizontal).
  * ------------------------------------------------------------------------- */
 .wc-wipe {
   position: fixed; inset: 0; z-index: 150; pointer-events: none;
-  display: grid; place-items: stretch;
+  overflow: hidden;
   clip-path: inset(0 50% 0 50%);
   opacity: 0; visibility: hidden;
 }
 .wc-wipe__bands {
-  display: block; width: 100%; height: 100%;
-  background: repeating-linear-gradient(90deg,
-    var(--wc-red) 0 8%, var(--wc-magenta) 8% 16%, var(--wc-purple) 16% 24%,
-    var(--wc-violet) 24% 32%, var(--wc-blue) 32% 40%, var(--wc-sky) 40% 48%,
-    var(--wc-teal) 48% 56%, var(--wc-green) 56% 64%, var(--wc-lime) 64% 72%,
-    var(--wc-magenta) 72% 80%, var(--wc-violet) 80% 88%, var(--wc-red) 88% 100%);
+  position: absolute; inset: 0; z-index: 1;
+  background: url("../assets/pattern-amplify.svg") center center / cover no-repeat;
+  transform: scale(0.35);
 }
-.wc-wipe.is-covering { opacity: 1; visibility: visible; animation: wcExplode 0.30s cubic-bezier(.5,0,.2,1) forwards; }
+/* El "26" en el centro es el ORIGEN de la explosión: aparece minúsculo y el
+ * patrón amplify emerge desde él hacia afuera (escalando) al cambiar de vista. */
+.wc-wipe__26 {
+  position: absolute; inset: 0; z-index: 2; display: grid; place-items: center;
+  font-family: var(--font-logo); font-weight: 700; color: #fff;
+  font-size: 34vmin; line-height: 1; text-shadow: 0 4px 30px rgba(0,0,0,0.35);
+}
+.wc-wipe.is-covering { opacity: 1; visibility: visible; animation: wcExplode 0.32s cubic-bezier(.5,0,.2,1) forwards; }
 .wc-wipe.is-revealing { opacity: 1; visibility: visible; animation: wcImplode 0.34s cubic-bezier(.5,0,.2,1) forwards; }
-.wc-wipe.is-covering .wc-wipe__bands { animation: wcBandsRush 0.30s linear forwards; }
-.wc-wipe.is-revealing .wc-wipe__bands { animation: wcBandsRush 0.34s linear forwards; }
+.wc-wipe.is-covering .wc-wipe__bands { animation: wcAmplifyIn 0.32s cubic-bezier(.4,0,.2,1) forwards; }
+.wc-wipe.is-revealing .wc-wipe__bands { animation: wcAmplifyOut 0.34s cubic-bezier(.4,0,.2,1) forwards; }
+.wc-wipe.is-covering .wc-wipe__26 { animation: wc26In 0.32s cubic-bezier(.34,1.3,.64,1) forwards; }
+.wc-wipe.is-revealing .wc-wipe__26 { animation: wc26Out 0.34s cubic-bezier(.4,0,.2,1) forwards; }
 @keyframes wcExplode { from { clip-path: inset(0 50% 0 50%); } to { clip-path: inset(0 0 0 0); } }
 @keyframes wcImplode { from { clip-path: inset(0 0 0 0); } to { clip-path: inset(0 50% 0 50%); } }
-@keyframes wcBandsRush { from { transform: translateX(-6%); } to { transform: translateX(6%); } }
+@keyframes wcAmplifyIn  { from { transform: scale(0.2) rotate(-2deg); } to { transform: scale(1.3) rotate(0deg); } }
+@keyframes wcAmplifyOut { from { transform: scale(1.3) rotate(0deg); }  to { transform: scale(2.8) rotate(2deg); } }
+@keyframes wc26In  { from { opacity: 0; transform: scale(0.15); } 55% { opacity: 1; } to { opacity: 0.92; transform: scale(1); } }
+@keyframes wc26Out { from { opacity: 0.92; transform: scale(1); } to { opacity: 0; transform: scale(2.4); } }
 
 /* Entrada de la vista nueva tras el wipe. */
 .view--entering { animation: viewEnter 0.32s ease both; }
