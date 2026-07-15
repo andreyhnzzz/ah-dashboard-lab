@@ -280,33 +280,39 @@
     var awayColor = (away && away.color) || '#3a3a42';
     var homeName = teamName(opts.homeId, opts.homeLabel);
     var awayName = teamName(opts.awayId, opts.awayLabel);
-    var scoreInner = opts.played
-      ? '<span class="scorecard__num">'+esc(opts.homeScore)+'</span><span class="scorecard__sep">–</span><span class="scorecard__num">'+esc(opts.awayScore)+'</span>'
-      : '<span class="scorecard__vs">vs</span>';
-    var statusLine = '';
+    // Los marcadores flanquean el emblema central (que reemplaza al "–"): el
+    // score local a la izquierda del emblema, el visitante a la derecha. En
+    // partidos sin jugar no hay números: solo el emblema al centro.
+    var homeNum = opts.played ? '<span class="scorecard__num scorecard__num--home">'+esc(opts.homeScore)+'</span>' : '';
+    var awayNum = opts.played ? '<span class="scorecard__num scorecard__num--away">'+esc(opts.awayScore)+'</span>' : '';
+    var subtab = '';
     if (opts.statusText != null) {
-      statusLine = '<div class="scorecard__status" style="--g:'+(opts.statusColor || 'var(--text-muted)')+'">'+esc(opts.statusText)+
-        (opts.resultText ? ' <span class="scorecard__result '+(opts.resultClass||'')+'">'+esc(opts.resultText)+'</span>' : '')+'</div>';
+      subtab = '<div class="scorecard__subtab" style="--g:'+(opts.statusColor || 'var(--score-fg-muted)')+'">'+
+        '<span class="scorecard__subtab-main">'+esc(opts.statusText)+'</span>'+
+        (opts.resultText ? '<span class="scorecard__result '+(opts.resultClass||'')+'">'+esc(opts.resultText)+'</span>' : '')+
+      '</div>';
     }
-    // La cápsula central lleva DOS marcas superpuestas: la copa (worldcup) que
-    // es el ORIGEN de la explosión, y el emblema oficial que aparece al final.
-    // La animación de entrada (css: scorecardReveal) hace emerger las bandas de
-    // color desde el centro —la copa— y luego cruza-funde copa → emblema.
-    return '<div class="scorecard">'+
+    // La cápsula CENTRAL lleva el emblema oficial (con la copa como origen de la
+    // animación) justo en medio, reemplazando el separador "–"; los dos scores
+    // van a sus lados. Un sub-panel negro cuelga debajo con el estado
+    // (grupo/fecha o resultado), al estilo del marcador oficial del Mundial.
+    return '<div class="scorecard'+(opts.played?' is-played':'')+'">'+
       '<div class="scorecard__bar">'+
         '<span class="scorecard__side scorecard__side--home'+(opts.favId===opts.homeId?' is-fav':'')+'" style="background:'+homeColor+';color:'+contrastText(homeColor)+'">'+
           teamFlagHtml(opts.homeId, opts.homeLabel)+'<span class="scorecard__name">'+esc(homeName)+'</span>'+
         '</span>'+
         '<span class="scorecard__capsule">'+
+          homeNum+
           '<span class="scorecard__marks" aria-hidden="true">'+
             '<img class="scorecard__mark scorecard__mark--trophy" src="assets/trophy-sm.png" alt="">'+
             '<img class="scorecard__mark scorecard__mark--emblem" src="assets/emblem-sm.png" alt="">'+
           '</span>'+
-          '<span class="scorecard__score">'+scoreInner+'</span></span>'+
+          awayNum+
+        '</span>'+
         '<span class="scorecard__side scorecard__side--away'+(opts.favId===opts.awayId?' is-fav':'')+'" style="background:'+awayColor+';color:'+contrastText(awayColor)+'">'+
           '<span class="scorecard__name">'+esc(awayName)+'</span>'+teamFlagHtml(opts.awayId, opts.awayLabel)+
         '</span>'+
-      '</div>'+statusLine+
+      '</div>'+subtab+
     '</div>';
   }
 
