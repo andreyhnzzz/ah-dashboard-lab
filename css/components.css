@@ -184,28 +184,38 @@ select { font: inherit; font-size: var(--fs-sm); padding: 6px var(--sp-3); borde
 .scorecard__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; animation: scFadeIn 0.4s 0.42s both; }
 .scorecard__side.is-fav { box-shadow: inset 0 0 0 2px rgba(255,255,255,0.75); }
 .scorecard__side .flag-ico { border-radius: 3px; box-shadow: 0 0 0 1px rgba(255,255,255,0.25); flex-shrink: 0; }
+/* Cápsula central negra: el emblema oficial va EN MEDIO (reemplaza al "–") y
+ * los dos scores lo flanquean, tal como el marcador oficial del Mundial. */
 .scorecard__capsule {
-  position: relative; flex-shrink: 0; z-index: 8; display: flex; align-items: center; gap: 6px;
-  background: var(--score-bg); color: #fff; padding: 6px 14px;
-  font-weight: 800; font-variant-numeric: tabular-nums;
+  position: relative; flex-shrink: 0; z-index: 8; display: flex; align-items: center; gap: 10px;
+  background: var(--score-bg); color: #fff; padding: 5px 16px;
+  font-variant-numeric: tabular-nums;
   animation: scorecardPop 0.4s cubic-bezier(.34,1.56,.64,1) both;
 }
 /* Marcas superpuestas copa → emblema en el centro de la cápsula. El estado de
  * REPOSO es el emblema oficial (trophy oculto por defecto): así, corra o no la
  * animación de entrada, el centro del marcador siempre acaba en el emblema —
  * la copa solo se ve como origen durante la animación (keyframes con fill). */
-.scorecard__marks { position: relative; width: 18px; height: 18px; flex-shrink: 0; }
+.scorecard__marks { position: relative; width: 26px; height: 30px; flex-shrink: 0; }
 .scorecard__mark { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 .scorecard__mark--trophy { opacity: 0; animation: scTrophy 0.95s ease both; }
 .scorecard__mark--emblem { opacity: 1; animation: scEmblem 0.95s ease both; }
-.scorecard__num { display: inline-block; min-width: 1ch; text-align: center; animation: scFadeIn 0.4s 0.42s both; }
-.scorecard__sep { opacity: 0.5; margin: 0 2px; }
-.scorecard__vs { opacity: 0.75; font-size: var(--fs-xs); }
-.scorecard__status {
-  margin-top: 6px; text-align: center; font-size: var(--fs-xs); font-weight: 700;
-  color: var(--g, var(--text-muted)); animation: scorecardSlideUp 0.35s 0.5s both;
+.scorecard__num { font-size: var(--fs-lg); font-weight: 700; line-height: 1; min-width: 1ch; text-align: center; animation: scFadeIn 0.4s 0.42s both; }
+
+/* Sub-panel negro que cuelga bajo el centro del marcador (grupo/fecha o
+ * estadio + resultado), como en el marcador oficial ("LIVE AT … STADIUM"). */
+.scorecard { display: flex; flex-direction: column; align-items: center; }
+.scorecard__bar { width: 100%; }
+.scorecard__subtab {
+  position: relative; z-index: 7; width: fit-content; max-width: 92%;
+  margin: -4px auto 0; padding: 4px 16px 6px;
+  background: var(--score-bg); color: var(--score-fg);
+  border-radius: 0 0 14px 14px;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  animation: scorecardSlideUp 0.35s 0.5s both;
 }
-.scorecard__result { margin-left: 6px; }
+.scorecard__subtab-main { font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--g, var(--score-fg)); }
+.scorecard__result { font-size: var(--fs-xs); font-weight: 700; }
 .res-w { color: var(--good); } .res-d { color: var(--warning); } .res-l { color: var(--danger); }
 /* Los marcadores del scorecard y de la matriz van sobre fondo oscuro y
  * necesitan tonos más claros que los definidos para superficies claras. */
@@ -222,7 +232,7 @@ select { font: inherit; font-size: var(--fs-sm); padding: 6px var(--sp-3); borde
 @keyframes scEmblem { 0%, 52% { opacity: 0; } 74%, 100% { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
   .scorecard__bar, .scorecard__bar::before, .scorecard__name, .scorecard__num,
-  .scorecard__capsule, .scorecard__status, .scorecard__mark--trophy, .scorecard__mark--emblem { animation: none; }
+  .scorecard__capsule, .scorecard__subtab, .scorecard__mark--trophy, .scorecard__mark--emblem { animation: none; }
   .scorecard__bar { clip-path: none; }
   .scorecard__bar::before { display: none; }
   .scorecard__mark--trophy { opacity: 0; }
