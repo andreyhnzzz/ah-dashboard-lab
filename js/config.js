@@ -28,8 +28,20 @@
      * ------------------------------------------------------------------------*/
     USE_MOCK: false,
 
-    // Base de la API REST pública y gratuita del Mundial 2026 (sin API key).
-    API_BASE: 'https://worldcup26.ir',
+    /* --- Base de la API ------------------------------------------------------
+     * Vacío = MISMO ORIGEN: las peticiones salen como /auth/* y /get/* hacia el
+     * servidor que sirve la página. Al levantar con `npm start` (ver server.js),
+     * ese servidor REENVÍA esas rutas a https://worldcup26.ir del lado servidor,
+     * evitando el bloqueo CORS que la API impone al login en el navegador
+     * (ver docs/LOGIN.md). Con `npm start` el login funciona con datos EN VIVO.
+     *
+     * Si se abre con un servidor estático "tonto" (sin proxy) o con file://,
+     * esas rutas no existen → la app cae automáticamente a datos locales de
+     * demostración (mismo dataset, ver js/view-login.js). Para forzar la API
+     * real directa (bloqueada por CORS en /auth/*, pero útil para pruebas de
+     * /get/*), poné aquí 'https://worldcup26.ir'.
+     * ------------------------------------------------------------------------*/
+    API_BASE: '',
 
     /* --- Autenticación --------------------------------------------------------
      * La API exige JWT en cada /get/*. No hay credenciales fijas de curso: la

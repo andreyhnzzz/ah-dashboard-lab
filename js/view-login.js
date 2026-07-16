@@ -21,6 +21,7 @@
   'use strict';
 
   function $(id) { return document.getElementById(id); }
+  function sleep(ms) { return new Promise(function (resolve) { setTimeout(resolve, ms); }); }
 
   var mode = 'new';
   var onSuccess = null; // callback async que corre tras loguear con éxito
@@ -86,10 +87,13 @@
       if (err.status >= 500) { return 'El servidor de la API tuvo un problema temporal (error ' + err.status + '). Ya se reintentó automáticamente; probá de nuevo.'; }
       return 'La API rechazó la solicitud (error ' + err.status + ').';
     }
-    // TypeError de fetch ("Failed to fetch" / "NetworkError…"): sin
-    // conexión, o la página se abrió con doble clic (file://) en vez de
-    // servirla desde un servidor local — ver guía de login en el README.
-    return 'No se pudo conectar con la API. Revisá tu conexión a internet y que esta página se esté sirviendo desde un servidor local (no abierta con doble clic) — ver la guía de login en el README.';
+    // TypeError de fetch ("Failed to fetch"): puede ser falta de conexión,
+    // pero el caso confirmado y reproducible es que worldcup26.ir NO manda
+    // Access-Control-Allow-Origin en /auth/register ni /auth/authenticate
+    // (sí lo manda en /get/*) — el navegador bloquea el login por CORS para
+    // cualquier origen que no sea el propio del proveedor, algo ajeno a esta
+    // app y no solucionable desde el cliente. Ver docs/LOGIN.md.
+    return 'No se pudo conectar con la API en vivo para iniciar sesión (probable bloqueo CORS del proveedor en /auth/*, ver docs/LOGIN.md) o falta de conexión. Continuando con datos locales de demostración…';
   }
 
   // Durante el intento, refleja los reintentos con backoff (429/5xx) en la
@@ -113,28 +117,51 @@
     }
   }
 
+  async function attemptLogin() {
+    if (mode === 'new') {
+      var name = $('auth-name').value.trim();
+      await App.api.registerDevice(name);
+    } else {
+      var email = App.storage.getDeviceEmail(), pass = App.storage.getDevicePassword();
+      if (email && pass) { await App.api.loginDevice(email, pass); }
+      else { await App.api.registerDevice(); } // credenciales perdidas: re-registra
+    }
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setBusy(true);
     showStatus(mode === 'new' ? 'Registrando dispositivo…' : 'Conectando…', 'loading');
     try {
-      await withRetryStatus(async function () {
-        if (mode === 'new') {
-          var name = $('auth-name').value.trim();
-          await App.api.registerDevice(name);
-        } else {
-          var email = App.storage.getDeviceEmail(), pass = App.storage.getDevicePassword();
-          if (email && pass) { await App.api.loginDevice(email, pass); }
-          else { await App.api.registerDevice(); } // credenciales perdidas: re-registra
-        }
-      });
+      await withRetryStatus(attemptLogin);
       hide();
       if (typeof onSuccess === 'function') { await onSuccess(); }
     } catch (err) {
-      // Sin alert(): el error queda dentro de la misma tarjeta, con botón
-      // para reintentar (reenviar el formulario dispara el mismo flujo).
-      console.error('[auth] fallo de autenticación:', err);
-      showStatus(describeError(err), 'error');
+      console.error('[auth] fallo de autenticación contra la API real:', err);
+      // Confirmado con curl (sin CORS) vs. navegador: worldcup26.ir NO manda
+      // Access-Control-Allow-Origin en /auth/register ni /auth/authenticate
+      // (sí lo hace en /get/*), así que CUALQUIER navegador, desde CUALQUIER
+      // origen que no sea el propio del proveedor, tiene el login bloqueado
+      // por política CORS — no es un problema de red del usuario ni de este
+      // código, y no se soluciona reintentando (ver docs/LOGIN.md). Por eso
+      // la app NO debe quedar atrapada en la pantalla de login: cae sola a
+      // modo local (mismo dataset que "Modo demo"), dejando constancia
+      // visible del cambio (sin alert()).
+      showStatus('No se pudo conectar con la API real (bloqueo CORS del proveedor en /auth/*, ver docs/LOGIN.md). Continuando con datos locales de demostración…', 'loading');
+      try {
+        App.config.USE_MOCK = true;
+        var mockToggle = $('toggle-mock');
+        if (mockToggle) { mockToggle.checked = true; }
+        await attemptLogin(); // en modo mock no toca la red: no puede fallar
+        await sleep(700); // deja el aviso visible un instante antes de continuar
+        hide();
+        if (typeof onSuccess === 'function') { await onSuccess(); }
+      } catch (fallbackErr) {
+        // No debería ocurrir nunca (el camino mock es local), pero si pasa,
+        // recién ahí se muestra un error real y se ofrece reintentar.
+        console.error('[auth] fallback local también falló:', fallbackErr);
+        showStatus(describeError(fallbackErr), 'error');
+      }
     } finally {
       setBusy(false);
     }

@@ -1,0 +1,14 @@
+{
+  "name": "ah-dashboard-lab",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Mundial 2026 · Dashboard Integral — ISW-521. Servidor de desarrollo con proxy a la API oficial (worldcup26.ir) para que el login funcione sin bloqueo CORS.",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "license": "MIT"
+}

@@ -53,16 +53,25 @@ flowchart TD
   U[Usuario] --> V[Views · js/view-*.js]
   V --> S[Common Store · js/common.js]
   S --> A[API Layer · js/api.js<br/>JWT + backoff + caché]
-  A --> W[(API worldcup26.ir)]
+  A -->|mismo origen| P[Proxy · server.js<br/>evita el bloqueo CORS]
+  P -->|servidor→servidor| W[(API worldcup26.ir)]
 ```
 
 ## Cómo ejecutarlo
 
 ```bash
-npx http-server . -p 8099    # o cualquier servidor estático
+npm start          # arranca el servidor local con proxy a la API (sin dependencias)
 ```
 
-Abrir `http://localhost:8099` — el primer ingreso registra una identidad de dispositivo local y ya se puede navegar con datos reales del torneo.
+Abrir **`http://localhost:8099`**. El primer ingreso registra una identidad de dispositivo y ya se navega con **datos reales y en vivo** del torneo.
+
+> **¿Por qué `npm start` y no un servidor estático a secas?** La API oficial
+> no envía cabeceras CORS en `/auth/*`, así que el navegador bloquea el login
+> contra `worldcup26.ir` desde cualquier origen. [`server.js`](server.js)
+> (Node, cero dependencias) reenvía `/auth/*` y `/get/*` a la API **del lado
+> servidor**, donde no hay CORS — así el login funciona de verdad. Con
+> cualquier otro servidor estático la app igual arranca, pero cae a datos
+> locales de demostración. Detalle completo en [docs/LOGIN.md](docs/LOGIN.md).
 
 ---
 

@@ -5,23 +5,68 @@ sí mismo una única vez ante la API real (`worldcup26.ir`) con una identidad
 generada localmente, y la reutiliza en cada visita. No hay ningún dato
 personal real involucrado — es una identidad de dispositivo, no de persona.
 
-## Requisito: servir la página, no abrirla con doble clic
-
-La causa más común de "no funciona el login" es abrir `index.html`
-directamente desde el explorador de archivos (`file:///...`). Varios
-navegadores bloquean o restringen `fetch()` hacia `https://` desde el origen
-`file://`, y el error que se ve en la tarjeta de login es simplemente *"No se
-pudo conectar con la API"*.
-
-Solución: servir la carpeta con cualquier servidor estático antes de abrirla.
+## TL;DR — para que el login funcione, usá `npm start`
 
 ```bash
-npx http-server . -p 8099
-# o
-python -m http.server 8099
+npm start        # → http://localhost:8099
 ```
 
-Y abrir `http://localhost:8099`, no el archivo directamente.
+`npm start` levanta [`server.js`](../server.js), un servidor Node (sin
+dependencias) que **reenvía `/auth/*` y `/get/*` a `worldcup26.ir` del lado
+servidor**. Eso esquiva el bloqueo CORS explicado abajo y hace que el login
+funcione con **datos reales y en vivo**. Con cualquier otro servidor estático
+la app arranca igual, pero cae a datos locales de demostración.
+
+## ⚠️ Causa confirmada: CORS del proveedor bloquea el login en TODO navegador
+
+`worldcup26.ir` **no envía el header `Access-Control-Allow-Origin` en
+`/auth/register` ni en `/auth/authenticate`** (sí lo hace, con `*`, en todos
+los `/get/*`). Comparación directa:
+
+```bash
+# Preflight real de /auth/register — SIN Access-Control-Allow-Origin:
+curl -sD - -o /dev/null -X OPTIONS https://worldcup26.ir/auth/register \
+  -H "Origin: http://localhost:8099" \
+  -H "Access-Control-Request-Method: POST" \
+  -H "Access-Control-Request-Headers: content-type"
+# → Access-Control-Allow-Methods, Access-Control-Allow-Headers... pero NO
+#   Access-Control-Allow-Origin.
+
+# GET, en cambio, sí lo trae:
+curl -sI https://worldcup26.ir/get/teams | grep -i access-control
+# → Access-Control-Allow-Origin: *
+```
+
+**Consecuencia**: cualquier navegador real, desde cualquier origen que no sea
+el propio del proveedor (probablemente su frontend oficial), bloquea el login
+por política CORS con exactamente este error en la consola:
+
+```
+Access to fetch at 'https://worldcup26.ir/auth/register' from origin
+'http://localhost:8099' has been blocked by CORS policy: Response to
+preflight request doesn't pass access control check: No
+'Access-Control-Allow-Origin' header is present on the requested resource.
+```
+
+Esto **no es un bug de este proyecto ni de tu conexión** — es una
+configuración del servidor de la API que no se puede arreglar desde el
+cliente (`fetch()` no tiene forma de saltarse CORS, por diseño de seguridad
+del navegador). `curl` no lo muestra porque CORS es una política que solo
+aplican los navegadores, nunca herramientas de línea de comandos.
+
+**Por eso la app nunca se queda bloqueada**: si el intento contra la API real
+falla (por este CORS o por cualquier otra razón de red), el login cae solo a
+**modo local** (mismo dataset que "Modo demo") después de agotar los
+reintentos, con un aviso visible pero sin interrumpir el acceso al dashboard
+— ver `js/view-login.js` → `handleSubmit`.
+
+## No la abras con doble clic (`file://`)
+
+Abrir `index.html` directamente desde el explorador (`file:///...`) suma
+restricciones extra de `fetch()` en varios navegadores. Servila siempre desde
+`http://localhost`. La forma recomendada es `npm start` (arriba), que además
+resuelve el CORS. Otros servidores estáticos (`npx http-server`, etc.)
+sirven la página pero **no** el login real: la app caerá a datos locales.
 
 ## Los tres estados de la pantalla
 
@@ -49,7 +94,9 @@ La misma tarjeta cambia de contenido según el momento de la sesión (ver
 Si la API responde `429` (límite de tasa) o `5xx` durante el login, la
 tarjeta reintenta sola con backoff exponencial (1 s, 2 s, 4 s, 8 s) y muestra
 el progreso ("Reintentando… intento 2"), igual que el resto de los endpoints
-de la app. Solo se muestra un error definitivo si se agotan los 5 intentos.
+de la app. Un bloqueo CORS (ver arriba) también dispara estos reintentos —
+fallan los 5 por igual, ya que CORS es determinístico y no se resuelve solo—,
+y recién ahí la app cae a modo local en vez de mostrar un error definitivo.
 
 ## Probar los distintos casos sin depender de la API real
 
