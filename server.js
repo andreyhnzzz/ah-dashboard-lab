@@ -1,23 +1,7 @@
 /* ============================================================================
- * server.js — Servidor de desarrollo con PROXY a la API del Mundial 2026
- * ----------------------------------------------------------------------------
- * Se arranca con `npm start`. Hace DOS cosas:
- *
- *   1. Sirve los archivos estáticos del proyecto (index.html, css, js, assets).
- *   2. Reenvía ("proxy") las peticiones a /auth/* y /get/* hacia
- *      https://worldcup26.ir DEL LADO DEL SERVIDOR.
- *
- * ¿Por qué el proxy? La API oficial NO envía el header
- * `Access-Control-Allow-Origin` en /auth/register ni /auth/authenticate (sí lo
- * hace en /get/*), así que el navegador bloquea el login por política CORS
- * desde cualquier origen ajeno al proveedor (ver docs/LOGIN.md). CORS es una
- * regla que aplican SOLO los navegadores: una petición servidor→servidor (este
- * Node hacia worldcup26.ir) no está sujeta a ella. Al pasar el login por este
- * proxy, el navegador habla en el MISMO origen (localhost) y el servidor
- * reenvía a la API real — el login funciona de verdad, con datos en vivo.
- *
- * Sin dependencias externas (solo módulos nativos de Node): `npm start`
- * funciona recién clonado, sin `npm install`.
+ * server.js — `npm start`: sirve estáticos + proxy /auth/* y /get/* a la API
+ * real (evita el bloqueo CORS del proveedor). Sin dependencias — ver
+ * docs/ARCHITECTURE.md y docs/LOGIN.md para el porqué.
  * ==========================================================================*/
 'use strict';
 
@@ -53,11 +37,8 @@ var MIME = {
   '.map': 'application/json; charset=utf-8'
 };
 
-/* ---------------------------------------------------------------------------
- * Proxy: reenvía la petición entrante a https://worldcup26.ir<misma ruta>.
- * Solo se copian los headers relevantes; se pide identity para no lidiar con
- * compresión, y NO se manda Origin (así la API ni siquiera evalúa CORS).
- * ------------------------------------------------------------------------- */
+// Reenvía la petición a https://worldcup26.ir<misma ruta>. No se manda
+// Origin, así la API ni siquiera evalúa CORS (ver docs/ARCHITECTURE.md).
 function proxy(req, res) {
   var chunks = [];
   req.on('data', function (c) { chunks.push(c); });
@@ -70,17 +51,14 @@ function proxy(req, res) {
 
     var options = { host: API_HOST, port: 443, path: req.url, method: req.method, headers: headers };
     var preq = https.request(options, function (pres) {
-      // Respuesta al navegador en el mismo origen (localhost): no hace falta
-      // CORS. Se reenvían status y content-type; el cuerpo se re-emite crudo.
       res.writeHead(pres.statusCode, {
         'Content-Type': pres.headers['content-type'] || 'application/json; charset=utf-8'
       });
       pres.pipe(res);
     });
     preq.on('error', function (err) {
-      // La API no respondió (caída, sin red, DNS…). Se devuelve 502 para que
-      // el cliente lo trate como error de servidor (reintenta y, si persiste,
-      // cae a datos locales — ver js/view-login.js).
+      // 502: el cliente lo trata como error de servidor (reintenta con
+      // backoff y, si persiste, cae a datos locales — ver js/view-login.js).
       console.error('[proxy] error hacia ' + API_HOST + req.url + ':', err.message);
       res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ error: 'bad_gateway', message: 'No se pudo contactar la API oficial: ' + err.message }));
@@ -90,9 +68,7 @@ function proxy(req, res) {
   });
 }
 
-/* ---------------------------------------------------------------------------
- * Estáticos: sirve archivos del proyecto de forma segura (sin path traversal).
- * ------------------------------------------------------------------------- */
+// Sirve archivos del proyecto de forma segura (sin path traversal).
 function serveStatic(req, res) {
   var urlPath = decodeURIComponent(req.url.split('?')[0]);
   if (urlPath === '/') { urlPath = '/index.html'; }
@@ -118,9 +94,7 @@ function serveStatic(req, res) {
   });
 }
 
-/* ---------------------------------------------------------------------------
- * Router: /auth/* y /get/* → proxy; el resto → estáticos.
- * ------------------------------------------------------------------------- */
+// Router: /auth/* y /get/* → proxy; el resto → estáticos.
 var server = http.createServer(function (req, res) {
   var p = req.url.split('?')[0];
   var isApi = PROXY_PREFIXES.some(function (pre) { return p.indexOf(pre) === 0; });

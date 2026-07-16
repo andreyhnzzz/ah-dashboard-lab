@@ -1,28 +1,12 @@
 /* ============================================================================
- * api.js — Capa de acceso a datos (Fetch + JWT + resiliencia)
- * ----------------------------------------------------------------------------
- * ÚNICO lugar que habla con la red. La capa de presentación (ui.js) nunca llama
- * a fetch directamente: pide datos a `App.api.getData(...)` y recibe siempre un
- * resultado normalizado. Esto cumple el requisito de la rúbrica de "separar la
- * lógica de fetch de la lógica de presentación".
- *
- * Cumple la Arquitectura Base de Resiliencia (sección 1.5 del enunciado):
- *   1. JWT: cada petición envía Authorization: Bearer <token> obtenido de la
- *      API real (POST /auth/register la primera vez, POST /auth/authenticate
- *      después) — no hay credenciales de curso hardcodeadas.
- *   2. async/await EXCLUSIVO. No hay .then() ni .catch() en ningún punto.
- *   3. 401 → limpia token y avisa a la UI (modal de sesión expirada). Sin reload.
- *   4. Backoff exponencial (1s,2s,4s,8s) para 429 y 500; en 429, countdown visible.
- *   5. Offline: cachea la última respuesta OK y la sirve marcada como "no actual".
- *
- * Prohibiciones respetadas: sin alert(), sin .then()/.catch(), sin location.reload().
+ * api.js — Capa de acceso a datos (fetch + JWT + resiliencia). Único lugar que
+ * habla con la red. Ver docs/ARCHITECTURE.md para el detalle de diseño.
  * ==========================================================================*/
 (function (App) {
   'use strict';
 
   var C = App.config;
 
-  /* --- Errores tipados (permiten a la UI distinguir el caso) --------------- */
   function AuthError(message) { this.name = 'AuthError'; this.message = message || '401'; }
   AuthError.prototype = Object.create(Error.prototype);
 
@@ -33,18 +17,15 @@
   }
   HttpError.prototype = Object.create(Error.prototype);
 
-  /* --- Hooks que la UI puede registrar para reflejar el estado de la red ----
-   * Se inicializan como no-ops para que la capa de datos nunca dependa de la UI.
-   * ------------------------------------------------------------------------*/
+  // Hooks no-op para que esta capa nunca dependa de la UI.
   var hooks = {
-    onRetry: function () {},        // ({ attempt, status, waitMs }) → aviso "reintentando"
-    onCountdownTick: function () {},// ({ secondsLeft, attempt, status }) → countdown 429
-    onRetryDone: function () {},    // () → limpiar avisos de reintento
-    onAuthExpired: function () {}   // () → mostrar modal de sesión expirada
+    onRetry: function () {},
+    onCountdownTick: function () {},
+    onRetryDone: function () {},
+    onAuthExpired: function () {}
   };
   App.api = { AuthError: AuthError, HttpError: HttpError, hooks: hooks };
 
-  /* --- Utilidades ---------------------------------------------------------- */
   function sleep(ms) {
     return new Promise(function (resolve) { setTimeout(resolve, ms); });
   }
@@ -56,36 +37,20 @@
     return headers;
   }
 
-  // Nombre corto del endpoint (para acotar la simulación a uno solo).
   function shortName(endpoint) {
     for (var key in C.ENDPOINTS) { if (C.ENDPOINTS[key] === endpoint) { return key; } }
     return null;
   }
 
-  /* --- Transporte: obtiene una Response (API real o mock) ------------------ */
   async function transport(endpoint) {
     if (C.USE_MOCK) {
-      // El mock respeta C.SIMULATE para inyectar 401/429/500/network, acotado
-      // al endpoint elegido en SIMULATE_TARGET ('all' = todos a la vez).
       var target = C.SIMULATE_TARGET || 'all';
       var applies = !C.SIMULATE || target === 'all' || target === shortName(endpoint);
       return App.mock.respond(endpoint, applies ? C.SIMULATE : '');
     }
-    var res = await fetch(C.API_BASE + endpoint, {
-      method: 'GET',
-      headers: authHeaders()
-    });
-    return res;
+    return fetch(C.API_BASE + endpoint, { method: 'GET', headers: authHeaders() });
   }
 
-  /* --- Autenticación real: registro único + login persistente --------------
-   * La API pública del Mundial 2026 no ofrece credenciales de curso; exige
-   * JWT en cada /get/*. Este navegador se registra una única vez a sí mismo
-   * (POST /auth/register) con una identidad generada localmente, guarda ese
-   * correo/clave en localStorage, y en cada visita posterior reautentica con
-   * POST /auth/authenticate — sin volver a registrarse. El token real dura
-   * 84 días según la documentación de la API.
-   * ------------------------------------------------------------------------*/
   function randomToken(len) {
     if (window.crypto && window.crypto.getRandomValues) {
       var arr = window.crypto.getRandomValues(new Uint32Array(len || 3));
@@ -94,11 +59,8 @@
     return Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
   }
 
-  // POST con la MISMA resiliencia que getData(): reintenta con backoff
-  // exponencial ante 429/5xx y ante fallos de red, en vez de fallar al primer
-  // intento (el login es el punto de entrada más visible de la app — si la
-  // API está momentáneamente saturada, no tiene sentido mostrar un error
-  // inmediato en vez de reintentar como en el resto de los endpoints).
+  // Mismo backoff que getData() para /auth/*: el login no debe fallar al
+  // primer tropiezo transitorio de la API.
   async function postWithRetry(url, payload) {
     var attempt = 0;
     while (true) {
@@ -122,11 +84,6 @@
     }
   }
 
-  // registerDevice()/loginDevice() son las DOS únicas puertas de entrada al
-  // token, y las llama tanto la pantalla de login (js/view-login.js, con el
-  // usuario mirando) como el fallback silencioso de getData() más abajo. En
-  // modo mock generan un token falso sin red (para poder ensayar 401/429/500
-  // en la defensa técnica); en modo real pegan contra worldcup26.ir.
   async function registerDevice(displayName) {
     if (C.USE_MOCK) {
       var mockEmail = 'demo.' + randomToken() + '@wc26-isw521.local';
@@ -162,9 +119,6 @@
     return body.token;
   }
 
-  // Fallback SILENCIOSO usado solo por getData() si, por alguna razón, se
-  // pide un recurso sin token y sin que la pantalla de login haya corrido
-  // todavía (no debería pasar en el flujo normal, que siempre loguea primero).
   async function authenticate() {
     var email = App.storage.getDeviceEmail();
     var password = App.storage.getDevicePassword();
@@ -175,12 +129,9 @@
   App.api.registerDevice = registerDevice;
   App.api.loginDevice = loginDevice;
 
-  /* --- Espera del backoff, con countdown visible en caso de 429 ----------- */
   async function backoffWait(attempt, status) {
     var waitMs = C.BACKOFF_BASE_MS * Math.pow(2, attempt - 1); // 1s,2s,4s,8s...
     hooks.onRetry({ attempt: attempt, status: status, waitMs: waitMs });
-
-    // El 429 (límite de tasa) exige un countdown en segundos visible al usuario.
     if (status === 429) {
       var secondsLeft = Math.round(waitMs / 1000);
       while (secondsLeft > 0) {
@@ -193,46 +144,29 @@
     }
   }
 
-  /* --- Fallback offline: sirve caché marcada como "no actualizada" --------- */
   function fallbackOrThrow(endpoint, error) {
     var cached = App.storage.getCached(endpoint);
-    if (cached) {
-      return { data: cached.data, stale: true, savedAt: cached.savedAt, error: error };
-    }
-    throw error; // sin caché no hay nada que mostrar → el caller decide el estado de error
+    if (cached) { return { data: cached.data, stale: true, savedAt: cached.savedAt, error: error }; }
+    throw error;
   }
 
-  /* --- API pública: getData -----------------------------------------------
-   * Devuelve SIEMPRE un objeto { data, stale, savedAt? } o lanza un error tipado.
-   * `stale: true` indica datos servidos desde caché (mostrar aviso).
-   * ------------------------------------------------------------------------*/
+  // Devuelve SIEMPRE { data, stale, savedAt? } o lanza un error tipado.
   async function getData(endpoint) {
-    // Garantiza que exista token antes de pedir datos (JWT obligatorio).
-    if (!App.storage.getToken()) {
-      await authenticate();
-    }
+    if (!App.storage.getToken()) { await authenticate(); }
 
     var attempt = 0;
     while (true) {
       attempt += 1;
       var res;
-
-      // 1) Intentar el transporte. Un fallo de red rechaza la promesa.
       try {
         res = await transport(endpoint);
       } catch (networkError) {
-        // Offline: si ya hay copia en caché, mostrarla de inmediato (no tiene
-        // sentido martillar la red). Sin caché, reintentar con backoff.
-        if (App.storage.hasCache(endpoint)) {
-          hooks.onRetryDone();
-          return fallbackOrThrow(endpoint, networkError);
-        }
+        if (App.storage.hasCache(endpoint)) { hooks.onRetryDone(); return fallbackOrThrow(endpoint, networkError); }
         if (attempt < C.MAX_ATTEMPTS) { await backoffWait(attempt, 0); continue; }
         hooks.onRetryDone();
-        return fallbackOrThrow(endpoint, networkError); // primera carga sin red y sin caché
+        return fallbackOrThrow(endpoint, networkError);
       }
 
-      // 2) Éxito: cachear y devolver datos frescos.
       if (res.ok) {
         var data = await res.json();
         App.storage.cacheResponse(endpoint, data);
@@ -240,7 +174,6 @@
         return { data: data, stale: false };
       }
 
-      // 3) 401: token inválido/expirado. Limpiar y avisar (modal), sin reload.
       if (res.status === 401) {
         App.storage.clearToken();
         hooks.onRetryDone();
@@ -248,14 +181,12 @@
         throw new AuthError('Sesión expirada (401)');
       }
 
-      // 4) 429 / 5xx: reintentar con backoff exponencial.
       if (res.status === 429 || res.status >= 500) {
         if (attempt < C.MAX_ATTEMPTS) { await backoffWait(attempt, res.status); continue; }
         hooks.onRetryDone();
-        return fallbackOrThrow(endpoint, new HttpError(res.status)); // agotado → caché
+        return fallbackOrThrow(endpoint, new HttpError(res.status));
       }
 
-      // 5) Otros 4xx no recuperables.
       hooks.onRetryDone();
       return fallbackOrThrow(endpoint, new HttpError(res.status));
     }

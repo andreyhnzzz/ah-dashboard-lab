@@ -74,9 +74,7 @@
 .tl-end { font-weight: 700; color: var(--text-secondary); }
 
 /* ---------------------- Matriz de Enfrentamientos -----------------------
- * Cada grupo tiene su propio color (--g, inyectado inline por JS desde
- * App.common.groupColor) — referencia: tarjetas de grupo con marco de color
- * propio y "chip" oscuro para el marcador. */
+ * --g (color por grupo) llega inline desde App.common.groupColor. */
 .group-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
 .group-tab { width: 40px; height: 40px; border-radius: var(--radius-sm); border: 2px solid var(--g, var(--border-strong)); background: var(--surface-1); color: var(--g, var(--text-secondary)); font: inherit; font-weight: 800; cursor: pointer; transition: background var(--transition), color var(--transition); }
 .group-tab.is-active { background: var(--g, var(--team-accent)); color: #fff; }

@@ -1,18 +1,7 @@
 (function(A){A.mock=A.mock||{};})(window.App=window.App||{});
 /* ============================================================================
- * mock-data.js — Dataset de ejemplo con el MISMO formato de la API real
- * ----------------------------------------------------------------------------
- * Por defecto la app llama a la API real del Mundial 2026 (worldcup26.ir,
- * ver js/api.js). Este archivo NO se usa a menos que el usuario active
- * "Modo demo → Datos locales" en la barra superior — su único propósito es
- * poder demostrar en DevTools los casos 401/429/500/offline durante la
- * defensa técnica sin depender de la disponibilidad de la API pública ni de
- * su límite de tasa (120 req/min).
- *
- * Los datos siguen EXACTAMENTE el mismo esquema documentado de la API real
- * (home_team_id, finished:'TRUE'/'FALSE', envoltorio {games:[...]}, ids como
- * string, etc.), de modo que common.js usa UN SOLO adaptador para ambos
- * orígenes — no hay dos formatos de datos paralelos en la app.
+ * mock-data.js — Dataset de ejemplo, mismo esquema que la API real. Solo se
+ * usa con "Modo demo → Datos locales". Ver docs/ARCHITECTURE.md.
  *
  * `App.mock.respond(endpoint, forced)` devuelve un objeto tipo `Response`
  * (misma forma que `fetch`), para que api.js procese mock y API real por la

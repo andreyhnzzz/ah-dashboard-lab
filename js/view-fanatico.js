@@ -1,16 +1,6 @@
 /* ============================================================================
- * view-fanatico.js — Apartado 2.4: Dashboard del Fanático Incondicional
- * ----------------------------------------------------------------------------
- * Técnica: tematización dinámica (variables CSS por equipo) + persistencia del
- * favorito en localStorage. El selector de favorito vive en la topbar (global).
- *
- * Diseño: estética de transmisión del Mundial 2026 (ver referencias de la
- * marca) — cabecera tipo "scoreboard" con los colores del equipo, y una
- * comparativa cara a cara del favorito contra el líder de su grupo con barras
- * de estadísticas, todo con datos REALES de la API (grupos + partidos).
- *
- * Resiliencia: si falta el grupo o los partidos, se dibuja con guiones y
- * avisos locales; nunca queda vacío.
+ * view-fanatico.js — Apartado 2.4: Dashboard del Fanático Incondicional.
+ * Tematización dinámica por equipo + comparativa vs. líder del grupo.
  * ==========================================================================*/
 (function (App) {
   'use strict';
@@ -42,10 +32,7 @@
     '</section>';
   }
 
-  /* --- Barras comparativas cara a cara (favorito vs. rival del grupo) -------
-   * Referencia: el panel de estadísticas de transmisión (Possession, Shots…),
-   * con el valor de cada equipo a los lados y barras que crecen desde el
-   * centro. Aquí se compara con datos reales del grupo. --------------------*/
+  // Barras comparativas favorito vs. rival del grupo (estilo panel de stats).
   function statBars(favRow, favTeam, rivalRow, rivalTeam){
     var favRec = C.teamRecord(favTeam.id);
     var rivalRec = C.teamRecord(rivalTeam.id);

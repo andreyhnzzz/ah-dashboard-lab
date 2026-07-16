@@ -1,10 +1,6 @@
 /* ============================================================================
- * variables.css — Design tokens (colores, tipografía, espaciado, sombras)
- * ----------------------------------------------------------------------------
- * Fuente única de verdad del sistema visual. La paleta de texto/superficie usa
- * tokens con contraste validado (guía de data-viz). El color de ACENTO del
- * equipo (--team-accent) se repinta en tiempo de ejecución vía JS (requisito
- * 2.4: "repintar variables CSS del dashboard según el equipo elegido").
+ * tokens.css — Design tokens. --team-accent se repinta en runtime vía JS
+ * (equipo favorito). Ver docs/ARCHITECTURE.md para el detalle de la paleta.
  * ==========================================================================*/
 :root {
   /* --- Superficies e ink (modo claro; validados para contraste AA) -------- */
@@ -23,12 +19,7 @@
   --danger:  #c0362c;
   --info:    #1c5cab;
 
-  /* --- Paleta oficial Mundial 2026 -----------------------------------------
-   * Tomada de la guía de identidad adjunta (emblema, wordmark y paleta de
-   * color oficiales): franja cálida (rojo/magenta) → franja fría (violeta/
-   * azul/verde azulado). Se usa para el "brand" fijo del shell (logo, login,
-   * subrayados de sección) — el acento POR EQUIPO (--team-accent) sigue
-   * siendo dinámico y no se toca, ya que tematiza el Dashboard del Fanático. */
+  /* --- Paleta oficial Mundial 2026 (brand fijo; --team-accent es aparte) --- */
   --wc-red:      #e0312b;
   --wc-magenta:  #c62368;
   --wc-maroon:   #6a1029;
@@ -50,12 +41,7 @@
   --team-tint:            rgba(74, 42, 134, 0.10); /* lavado suave del acento */
   --team-tint-strong:     rgba(74, 42, 134, 0.18);
 
-  /* --- Tipografía -----------------------------------------------------------
-   * Sin CDN de fuentes (modo offline / doble-clic): se aproxima la tipografía
-   * "FWC26 Event Typeface" (condensada, muy bold, para titulares) con la pila
-   * del sistema en peso 800/900 + letter-spacing negativo + mayúsculas — ver
-   * clase .display en layout.css. El texto de cuerpo usa Noto Sans si está
-   * instalada (tipografía de soporte oficial) con fallback a system-ui. --- */
+  /* --- Tipografía (autoalojada, ver css/fonts.css y css/typography.css) --- */
   --font-sans: "Noto Sans", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-display: "FWC26", "Arial Narrow", "Noto Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-logo: "FIFA26 Logo", "FWC26", system-ui, sans-serif;   /* solo para el slogan "WE ARE 26" */
@@ -76,9 +62,7 @@
 
   --transition: 0.25s ease;
 
-  /* --- Pantalla de login / re-login (apartado 1.5: JWT + modal 401) -------
-   * Acento tomado de la paleta oficial (violeta/magenta), independiente del
-   * acento dinámico del equipo (el login ocurre ANTES de elegir favorito). */
+  /* --- Login: acento propio (violeta), independiente del acento por equipo --- */
   --auth-bg:               #f4f1f8;
   --auth-card-bg:          #ffffff;
   --auth-accent:           #6f3fc4;
@@ -86,19 +70,12 @@
   --auth-accent-contrast:  #ffffff;
   --auth-ring:             rgba(111, 63, 196, 0.3);
 
-  /* --- Color por grupo (A–L) ------------------------------------------------
-   * Inspirado en las referencias de UI adjuntas: tarjetas de resultados con
-   * marco de color propio por grupo, banderas en "chip" y marcador tipo
-   * scoreboard sobre tarjeta oscura. Doce tonos distinguibles entre sí y
-   * legibles como texto blanco sobre ellos (usado en .group-tab, cabeceras de
-   * la matriz y las tarjetas de partido). --- */
+  /* --- Color por grupo (A–L): 12 tonos distinguibles, legibles en blanco --- */
   --grp-a: #22c55e; --grp-b: #ef4444; --grp-c: #f97316; --grp-d: #3b82f6;
   --grp-e: #eab308; --grp-f: #8b5cf6; --grp-g: #ec4899; --grp-h: #14b8a6;
   --grp-i: #84cc16; --grp-j: #06b6d4; --grp-k: #f59e0b; --grp-l: #6366f1;
 
-  /* --- Tarjeta "scoreboard" (marcador oscuro) -------------------------------
-   * Tarjetas de partido/resultado en negro real con texto blanco, tal como en
-   * las referencias — independiente del tema claro/oscuro del resto de la UI. */
+  /* --- Tarjeta "scoreboard": negro real, independiente del tema claro/oscuro --- */
   --score-bg:      #131316;
   --score-bg-2:    #1c1c20;
   --score-fg:      #ffffff;
@@ -106,8 +83,7 @@
   --score-pill-bg: #2b2b31;
 }
 
-/* --- Modo oscuro (preferencia del sistema; los pasos se re-eligen, no se
- *     invierten sin más — mantienen contraste sobre la superficie oscura) --- */
+/* --- Modo oscuro: tonos re-elegidos, no invertidos, para mantener contraste --- */
 @media (prefers-color-scheme: dark) {
   :root {
     --surface-page:   #0d0d0d;

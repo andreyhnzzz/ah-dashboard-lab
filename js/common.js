@@ -1,14 +1,6 @@
 /* ============================================================================
- * common.js — Adaptador de datos + utilidades compartidas + estado en memoria
- * ----------------------------------------------------------------------------
- * Todas las vistas (sedes, agenda, timeline, fanático, matriz) leen los datos
- * desde `App.common.store` y usan estos helpers. Aquí vive el ÚNICO punto que
- * conoce la forma real de la API del Mundial 2026 (home_team_id, finished:
- * 'TRUE'/'FALSE', envoltorio {games:[...]}, ids como string, fechas
- * MM/DD/YYYY, etc. — ver la documentación de la API en el README) y la
- * traduce a una forma interna simple que el resto de la app consume. El modo
- * demo (mock-data.js) entrega datos con ese MISMO formato real, así que este
- * adaptador es el único camino — no hay dos esquemas paralelos.
+ * common.js — Adaptador de datos + utilidades compartidas + store en memoria.
+ * Único punto que conoce la forma real de la API — ver docs/ARCHITECTURE.md.
  * ==========================================================================*/
 (function (App) {
   'use strict';
@@ -109,19 +101,8 @@
     return WEEKDAYS[d.getUTCDay()]+' '+parseInt(p[2],10)+' '+MONTHS[+p[1]-1]+' '+p[0];
   }
 
-  /* ---------------------- Adaptador: API real → forma interna -------------
-   * Esquema real (ver README): teams {id,name_en,name_fa,fifa_code,groups,
-   * flag}; stadiums {id,name_en,name_fa,fifa_name,city_en,country_en,
-   * capacity}; groups {group,teams:[{team_id,pts,gf,ga}]}; games envuelto
-   * {games:[{id,home_team_id,away_team_id,home_score,away_score,group,
-   * local_date:'MM/DD/YYYY HH:mm',stadium_id,finished:'TRUE'/'FALSE',
-   * type:'group'|'r32'|'r16'|'qf'|'sf'|'third'|'final',
-   * home_team_name_en,away_team_name_en,home_team_label,away_team_label}]}.
-   * ------------------------------------------------------------------------*/
-
-  // Algunas respuestas pueden llegar como array plano o envueltas en un
-  // objeto (p. ej. {teams:[...]} o {data:[...]}) según la implementación
-  // exacta del servidor. Se admite cualquiera de las dos formas.
+  // Adaptador API real → forma interna (esquema completo en docs/ARCHITECTURE.md).
+  // Admite array plano o envuelto ({teams:[...]} / {data:[...]}).
   function unwrapArray(raw, keys){
     if (Array.isArray(raw)) { return raw; }
     if (raw && typeof raw === 'object') {
@@ -203,6 +184,16 @@
     ready: { teams:false, games:false, groups:false, stadiums:false }
   };
 
+  // Vacía el store en memoria: al cerrar sesión, no debe quedar ni un dato
+  // cargado detrás de la pantalla de login (aunque esté visualmente oculta).
+  function resetStore(){
+    store.teams = []; store.teamById = {}; store.teamsSorted = [];
+    store.stadiums = []; store.stadiumById = {};
+    store.games = []; store.gamesByStadium = {}; store.gamesByDate = {}; store.matchesByTeam = {};
+    store.groups = []; store.groupByLetter = {};
+    store.ready.teams = store.ready.games = store.ready.groups = store.ready.stadiums = false;
+  }
+
   function setTeams(raw){
     var teams = unwrapArray(raw, ['teams', 'data']).map(adaptTeam);
     store.teams = teams; store.teamById = {};
@@ -268,21 +259,15 @@
     return icon('trophy', 'flag-ico flag-ico--fallback');
   }
 
-  // Tarjeta de partido estilo "scoreboard" de transmisión deportiva (ver
-  // referencias de diseño del Mundial 2026): dos extremos de color —el color
-  // de marca de cada equipo, ya derivado en adaptTeam()— y una cápsula negra
-  // central con el emblema y el marcador. La reutilizan Sedes, Agenda,
-  // Timeline y el Dashboard del Fanático para que el look sea el mismo en
-  // toda la app. `opts.statusColor` recibe típicamente groupColor(letra).
+  // Tarjeta de partido "scoreboard" (ver docs/ARCHITECTURE.md), reutilizada
+  // por Sedes/Agenda/Timeline/Fanático. opts.statusColor suele ser groupColor(letra).
   function scorecardBar(opts) {
     var home = store.teamById[opts.homeId], away = store.teamById[opts.awayId];
     var homeColor = (home && home.color) || '#3a3a42';
     var awayColor = (away && away.color) || '#3a3a42';
     var homeName = teamName(opts.homeId, opts.homeLabel);
     var awayName = teamName(opts.awayId, opts.awayLabel);
-    // Los marcadores flanquean el emblema central (que reemplaza al "–"): el
-    // score local a la izquierda del emblema, el visitante a la derecha. En
-    // partidos sin jugar no hay números: solo el emblema al centro.
+    // Los scores flanquean el emblema central (reemplaza al "–").
     var homeNum = opts.played ? '<span class="scorecard__num scorecard__num--home">'+esc(opts.homeScore)+'</span>' : '';
     var awayNum = opts.played ? '<span class="scorecard__num scorecard__num--away">'+esc(opts.awayScore)+'</span>' : '';
     var subtab = '';
@@ -292,10 +277,6 @@
         (opts.resultText ? '<span class="scorecard__result '+(opts.resultClass||'')+'">'+esc(opts.resultText)+'</span>' : '')+
       '</div>';
     }
-    // La cápsula CENTRAL lleva el emblema oficial (con la copa como origen de la
-    // animación) justo en medio, reemplazando el separador "–"; los dos scores
-    // van a sus lados. Un sub-panel negro cuelga debajo con el estado
-    // (grupo/fecha o resultado), al estilo del marcador oficial del Mundial.
     return '<div class="scorecard'+(opts.played?' is-played':'')+'">'+
       '<div class="scorecard__bar">'+
         '<span class="scorecard__side scorecard__side--home'+(opts.favId===opts.homeId?' is-fav':'')+'" style="background:'+homeColor+';color:'+contrastText(homeColor)+'">'+
@@ -363,7 +344,7 @@
 
   App.common = {
     $: $, esc: esc, icon: icon, store: store,
-    setTeams: setTeams, setStadiums: setStadiums, setGames: setGames, setGroups: setGroups,
+    setTeams: setTeams, setStadiums: setStadiums, setGames: setGames, setGroups: setGroups, resetStore: resetStore,
     teamName: teamName, teamFlagHtml: teamFlagHtml, teamRecord: teamRecord, groupColor: groupColor, scorecardBar: scorecardBar,
     applyTeamTheme: applyTeamTheme, contrastText: contrastText,
     fmtDate: fmtDate, fmtDateLong: fmtDateLong,

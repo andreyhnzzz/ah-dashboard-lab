@@ -1,21 +1,11 @@
 /* ============================================================================
- * view-login.js — Pantalla de login (App.auth)
- * ----------------------------------------------------------------------------
- * Referencia visual: el login minimalista de claude.ai (tarjeta centrada,
- * un único botón de acento, sin ruido). Es la ÚNICA puerta hacia un token
- * válido: la usa tanto el arranque de la app (app.js → bootstrap) como el
- * manejo del reto de resiliencia 401 (api.js → hooks.onAuthExpired), así que
- * "el sistema de login va de la mano con la simulación de errores que
- * requieren re-loguear" descrito en el enunciado.
- *
- * Estados (misma tarjeta, contenido distinto):
- *   'new'       → primer ingreso en este navegador: pide un nombre y
- *                 dispara POST /auth/register (o su versión mock).
- *   'returning' → ya hay identidad de dispositivo guardada: un solo botón
- *                 dispara POST /auth/authenticate.
- *   'expired'   → un 401 (real o simulado desde "Modo demo") invalidó el
- *                 token en curso: mismo botón que 'returning', pero con aviso
- *                 explícito de sesión expirada.
+ * view-login.js — Pantalla de acceso (App.auth). Ver docs/ARCHITECTURE.md.
+ * Dos capas en la misma tarjeta:
+ *   1) Local ('local-new' / 'local-unlock'): usuario+contraseña elegidos por
+ *      la persona, para proteger el dashboard en este navegador. Sin esto no
+ *      se ve ni un dato de la app.
+ *   2) Dispositivo ('new' / 'returning' / 'expired'): identidad autogenerada
+ *      contra la API real del Mundial 2026 (sin credenciales de curso).
  * ==========================================================================*/
 (function (App) {
   'use strict';
@@ -23,13 +13,15 @@
   function $(id) { return document.getElementById(id); }
   function sleep(ms) { return new Promise(function (resolve) { setTimeout(resolve, ms); }); }
 
-  var mode = 'new';
-  var onSuccess = null; // callback async que corre tras loguear con éxito
+  var mode = 'local-new';
+  var onSuccess = null;
   var initialized = false;
 
-  // Oculta parte del correo generado para no imprimir la identidad completa
-  // en pantalla (buena práctica aun tratándose de datos de dispositivo, no
-  // personales): "dashboard.ab12@wc26-isw521.local" → "dashboard.ab1…@wc26-isw521.local".
+  async function sha256Hex(text) {
+    var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+    return Array.prototype.map.call(new Uint8Array(buf), function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+  }
+
   function maskEmail(email) {
     if (!email) { return ''; }
     var at = email.indexOf('@');
@@ -39,25 +31,43 @@
   }
 
   function paint() {
-    var title = $('auth-title'), desc = $('auth-desc'), submit = $('auth-submit');
-    var fieldName = $('auth-field-name'), fieldEmail = $('auth-field-email'), chip = $('auth-email-chip');
-    var email = App.storage.getDeviceEmail();
+    var title = $('auth-title'), desc = $('auth-desc'), submit = $('auth-submit'), foot = $('auth-foot');
+    var fUser = $('auth-field-user'), fPass = $('auth-field-pass'), fPass2 = $('auth-field-pass2');
+    var fName = $('auth-field-name'), fEmail = $('auth-field-email'), chip = $('auth-email-chip');
+    [fUser, fPass, fPass2, fName, fEmail].forEach(function (f) { f.hidden = true; });
 
-    if (mode === 'new') {
-      title.textContent = 'Creá tu sesión';
-      desc.textContent = 'Registrá este navegador ante la API oficial del Mundial 2026 (worldcup26.ir) para consultar datos reales y en vivo.';
-      fieldName.hidden = false; fieldEmail.hidden = true;
+    if (mode === 'local-new') {
+      title.textContent = 'Creá tu acceso';
+      desc.textContent = 'Elegí un usuario y una contraseña para proteger este dashboard en este navegador.';
+      fUser.hidden = fPass.hidden = fPass2.hidden = false;
+      $('auth-user').value = ''; $('auth-pass').value = ''; $('auth-pass2').value = '';
+      submit.textContent = 'Crear acceso';
+      foot.hidden = false;
+    } else if (mode === 'local-unlock') {
+      title.textContent = 'Iniciá sesión';
+      desc.textContent = 'Ingresá tu usuario y contraseña para acceder al dashboard.';
+      fUser.hidden = fPass.hidden = false;
+      $('auth-user').value = App.storage.getLocalUser() || ''; $('auth-pass').value = '';
+      submit.textContent = 'Entrar';
+      foot.hidden = true;
+    } else if (mode === 'new') {
+      title.textContent = 'Conectá con la API';
+      desc.textContent = 'Registrá este navegador ante la API oficial del Mundial 2026 para consultar datos reales y en vivo.';
+      fName.hidden = false;
       submit.textContent = 'Crear sesión y continuar';
+      foot.hidden = false;
     } else if (mode === 'expired') {
       title.textContent = 'Tu sesión expiró';
-      desc.textContent = 'El token de acceso ya no es válido (error 401). Volvé a iniciar sesión para continuar — no perdés tu vista, tu configuración ni tu equipo favorito.';
-      fieldName.hidden = true; fieldEmail.hidden = false; chip.textContent = maskEmail(email);
+      desc.textContent = 'El token de acceso ya no es válido. Volvé a iniciar sesión para continuar.';
+      fEmail.hidden = false; chip.textContent = maskEmail(App.storage.getDeviceEmail());
       submit.textContent = 'Reautenticarme';
+      foot.hidden = true;
     } else { // 'returning'
       title.textContent = 'Bienvenido de nuevo';
-      desc.textContent = 'Ya tenías una sesión de dispositivo guardada en este navegador. Continuá para reconectarte a la API.';
-      fieldName.hidden = true; fieldEmail.hidden = false; chip.textContent = maskEmail(email);
+      desc.textContent = 'Reconectando con la API oficial del Mundial 2026…';
+      fEmail.hidden = false; chip.textContent = maskEmail(App.storage.getDeviceEmail());
       submit.textContent = 'Continuar';
+      foot.hidden = true;
     }
     hideStatus();
   }
@@ -72,55 +82,39 @@
 
   function setBusy(busy) {
     $('auth-submit').disabled = busy;
-    $('auth-name').disabled = busy;
+    ['auth-user', 'auth-pass', 'auth-pass2', 'auth-name'].forEach(function (id) { $(id).disabled = busy; });
   }
 
-  // Mensaje accionable según el tipo de fallo — el login es la primera
-  // pantalla que ve cualquiera, así que un "error de red" genérico no alcanza
-  // para que alguien sin contexto técnico sepa qué hacer.
   function describeError(err) {
-    if (err instanceof App.api.AuthError) {
-      return 'La API respondió pero no devolvió una sesión válida. Probá de nuevo en unos segundos.';
-    }
+    if (err instanceof App.api.AuthError) { return 'La API respondió pero no devolvió una sesión válida. Probá de nuevo en unos segundos.'; }
     if (err instanceof App.api.HttpError) {
-      if (err.status === 429) { return 'Demasiadas solicitudes a la API (límite de tasa). Ya se reintentó automáticamente; esperá un minuto y volvé a intentar.'; }
-      if (err.status >= 500) { return 'El servidor de la API tuvo un problema temporal (error ' + err.status + '). Ya se reintentó automáticamente; probá de nuevo.'; }
+      if (err.status === 429) { return 'Demasiadas solicitudes a la API. Ya se reintentó automáticamente; esperá un minuto y volvé a intentar.'; }
+      if (err.status >= 500) { return 'El servidor de la API tuvo un problema temporal (' + err.status + '). Ya se reintentó; probá de nuevo.'; }
       return 'La API rechazó la solicitud (error ' + err.status + ').';
     }
-    // TypeError de fetch ("Failed to fetch"): puede ser falta de conexión,
-    // pero el caso confirmado y reproducible es que worldcup26.ir NO manda
-    // Access-Control-Allow-Origin en /auth/register ni /auth/authenticate
-    // (sí lo manda en /get/*) — el navegador bloquea el login por CORS para
-    // cualquier origen que no sea el propio del proveedor, algo ajeno a esta
-    // app y no solucionable desde el cliente. Ver docs/LOGIN.md.
-    return 'No se pudo conectar con la API en vivo para iniciar sesión (probable bloqueo CORS del proveedor en /auth/*, ver docs/LOGIN.md) o falta de conexión. Continuando con datos locales de demostración…';
+    // "Failed to fetch": sin conexión, o CORS del proveedor en /auth/* si se
+    // corrió sin el proxy de `npm start` — ver docs/LOGIN.md.
+    return 'No se pudo conectar con la API en vivo (ver docs/LOGIN.md). Continuando con datos locales de demostración…';
   }
 
-  // Durante el intento, refleja los reintentos con backoff (429/5xx) en la
-  // misma tarjeta — si no, quedarían "atrapados" detrás del auth-gate, que
-  // cubre toda la app y oculta el banner global de reintento.
+  // Refleja los reintentos con backoff (429/5xx) en la misma tarjeta, ya que
+  // el auth-gate cubre el banner global de reintento.
   async function withRetryStatus(fn) {
     var prevOnRetry = App.api.hooks.onRetry, prevOnTick = App.api.hooks.onCountdownTick, prevOnDone = App.api.hooks.onRetryDone;
-    App.api.hooks.onRetry = function (info) {
-      showStatus('Reintentando (intento ' + info.attempt + ')… ' + Math.round(info.waitMs / 1000) + ' s', 'loading');
-    };
-    App.api.hooks.onCountdownTick = function (info) {
-      showStatus('Límite de tasa. Próximo intento en ' + info.secondsLeft + ' s…', 'loading');
-    };
+    App.api.hooks.onRetry = function (info) { showStatus('Reintentando (intento ' + info.attempt + ')… ' + Math.round(info.waitMs / 1000) + ' s', 'loading'); };
+    App.api.hooks.onCountdownTick = function (info) { showStatus('Límite de tasa. Próximo intento en ' + info.secondsLeft + ' s…', 'loading'); };
     App.api.hooks.onRetryDone = function () {};
-    try {
-      await fn();
-    } finally {
+    try { await fn(); }
+    finally {
       App.api.hooks.onRetry = prevOnRetry;
       App.api.hooks.onCountdownTick = prevOnTick;
       App.api.hooks.onRetryDone = prevOnDone;
     }
   }
 
-  async function attemptLogin() {
+  async function attemptDeviceLogin() {
     if (mode === 'new') {
-      var name = $('auth-name').value.trim();
-      await App.api.registerDevice(name);
+      await App.api.registerDevice($('auth-name').value.trim());
     } else {
       var email = App.storage.getDeviceEmail(), pass = App.storage.getDevicePassword();
       if (email && pass) { await App.api.loginDevice(email, pass); }
@@ -128,37 +122,52 @@
     }
   }
 
-  async function handleSubmit(e) {
-    e.preventDefault();
+  async function handleLocalSubmit() {
     setBusy(true);
-    showStatus(mode === 'new' ? 'Registrando dispositivo…' : 'Conectando…', 'loading');
+    showStatus(mode === 'local-new' ? 'Creando acceso…' : 'Verificando…', 'loading');
     try {
-      await withRetryStatus(attemptLogin);
+      var user = $('auth-user').value.trim(), pass = $('auth-pass').value;
+      if (mode === 'local-new') {
+        if (!user || pass.length < 4) { throw new Error('Elegí un usuario y una contraseña de al menos 4 caracteres.'); }
+        if (pass !== $('auth-pass2').value) { throw new Error('Las contraseñas no coinciden.'); }
+        App.storage.setLocalCredentials(user, await sha256Hex(user.toLowerCase() + ':' + pass));
+      } else {
+        var storedUser = App.storage.getLocalUser();
+        var hash = await sha256Hex(user.toLowerCase() + ':' + pass);
+        if (!user || user.toLowerCase() !== (storedUser || '').toLowerCase() || hash !== App.storage.getLocalPassHash()) {
+          throw new Error('Usuario o contraseña incorrectos.');
+        }
+      }
+      App.storage.setUnlocked();
       hide();
       if (typeof onSuccess === 'function') { await onSuccess(); }
     } catch (err) {
-      console.error('[auth] fallo de autenticación contra la API real:', err);
-      // Confirmado con curl (sin CORS) vs. navegador: worldcup26.ir NO manda
-      // Access-Control-Allow-Origin en /auth/register ni /auth/authenticate
-      // (sí lo hace en /get/*), así que CUALQUIER navegador, desde CUALQUIER
-      // origen que no sea el propio del proveedor, tiene el login bloqueado
-      // por política CORS — no es un problema de red del usuario ni de este
-      // código, y no se soluciona reintentando (ver docs/LOGIN.md). Por eso
-      // la app NO debe quedar atrapada en la pantalla de login: cae sola a
-      // modo local (mismo dataset que "Modo demo"), dejando constancia
-      // visible del cambio (sin alert()).
-      showStatus('No se pudo conectar con la API real (bloqueo CORS del proveedor en /auth/*, ver docs/LOGIN.md). Continuando con datos locales de demostración…', 'loading');
+      showStatus(err.message || 'No se pudo continuar.', 'error');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleDeviceSubmit() {
+    setBusy(true);
+    showStatus(mode === 'new' ? 'Registrando dispositivo…' : 'Conectando…', 'loading');
+    try {
+      await withRetryStatus(attemptDeviceLogin);
+      hide();
+      if (typeof onSuccess === 'function') { await onSuccess(); }
+    } catch (err) {
+      console.error('[auth] fallo contra la API real:', err);
+      // La app nunca debe quedar atrapada en el login por un problema de red
+      // o CORS ajeno al usuario: cae a datos locales (ver docs/LOGIN.md).
+      showStatus('No se pudo conectar con la API real. Continuando con datos locales de demostración…', 'loading');
       try {
         App.config.USE_MOCK = true;
-        var mockToggle = $('toggle-mock');
-        if (mockToggle) { mockToggle.checked = true; }
-        await attemptLogin(); // en modo mock no toca la red: no puede fallar
-        await sleep(700); // deja el aviso visible un instante antes de continuar
+        var mockToggle = $('toggle-mock'); if (mockToggle) { mockToggle.checked = true; }
+        await attemptDeviceLogin(); // en modo mock no toca la red: no falla
+        await sleep(700);
         hide();
         if (typeof onSuccess === 'function') { await onSuccess(); }
       } catch (fallbackErr) {
-        // No debería ocurrir nunca (el camino mock es local), pero si pasa,
-        // recién ahí se muestra un error real y se ofrece reintentar.
         console.error('[auth] fallback local también falló:', fallbackErr);
         showStatus(describeError(fallbackErr), 'error');
       }
@@ -167,8 +176,12 @@
     }
   }
 
-  // Muestra la tarjeta y bloquea el resto de la app para lectores de
-  // pantalla (aria-hidden) mientras no haya token válido.
+  function handleSubmit(e) {
+    e.preventDefault();
+    if (mode === 'local-new' || mode === 'local-unlock') { handleLocalSubmit(); }
+    else { handleDeviceSubmit(); }
+  }
+
   function show(newMode, afterSuccess) {
     mode = newMode;
     onSuccess = afterSuccess || null;
@@ -177,7 +190,8 @@
     document.body.classList.add('auth-open');
     var shell = document.querySelector('.shell');
     if (shell) { shell.setAttribute('aria-hidden', 'true'); }
-    (mode === 'new' ? $('auth-name') : $('auth-submit')).focus();
+    var focusId = (mode === 'local-new' || mode === 'local-unlock') ? 'auth-user' : (mode === 'new' ? 'auth-name' : 'auth-submit');
+    $(focusId).focus();
   }
 
   function hide() {

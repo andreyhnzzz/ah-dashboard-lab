@@ -40,6 +40,8 @@ body {
 .sidebar__sub { display: block; font-size: var(--fs-xs); color: var(--text-muted); }
 .sidebar__slogan { margin-top: auto; padding-top: var(--sp-4); }
 .sidebar__foot { font-size: var(--fs-xs); color: var(--text-muted); margin: var(--sp-3) 0 0; }
+.sidebar__logout { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; margin-top: var(--sp-3); color: var(--danger); border-color: var(--border); }
+.sidebar__logout:hover { background: color-mix(in srgb, var(--danger) 10%, transparent); }
 
 /* Slogan oficial "WE ARE 26" con la fuente de logotipo (uso puntual). */
 .slogan {
@@ -85,13 +87,8 @@ body {
 
 .view { flex: 1; padding: var(--sp-5); display: flex; flex-direction: column; gap: var(--sp-5); }
 
-/* ---------------------------------------------------------------------------
- * Transición entre vistas = AMPLIFY PATTERN (identidad oficial del Mundial).
- * El overlay muestra el patrón "amplify" (eco concéntrico del 26 en la paleta,
- * assets/pattern-amplify.svg) que se AMPLIFICA con zoom desde el centro para
- * cubrir, y sigue expandiéndose para revelar la vista nueva. El clip-path
- * abre/cierra desde el centro (explosión horizontal).
- * ------------------------------------------------------------------------- */
+/* Transición entre vistas: el "amplify pattern" (assets/pattern-amplify.svg)
+ * se amplifica con zoom desde el centro, con clip-path abriendo/cerrando. */
 .wc-wipe {
   position: fixed; inset: 0; z-index: 150; pointer-events: none;
   overflow: hidden;
@@ -147,10 +144,8 @@ body {
 }
 .app-footer > p { margin: 0; }
 
-/* --- Declaración de accesibilidad (WCAG 2.1 AA + Ley 7600) ----------------
- * Discreta: opacidad baja en reposo para no competir con la estética, y
- * opacidad plena al pasar el mouse, al enfocar por teclado o al abrirla —
- * de modo que nunca queda inaccesible para quien la necesita. */
+/* Declaración de accesibilidad (WCAG 2.1 AA + Ley 7600): opacidad baja en
+ * reposo, plena al pasar el mouse/enfocar/abrir — nunca inaccesible. */
 .a11y {
   margin-top: var(--sp-2);
   opacity: 0.32;

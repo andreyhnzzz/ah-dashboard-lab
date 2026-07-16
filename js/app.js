@@ -117,15 +117,14 @@
     };
     App.api.hooks.onRetryDone = function(){ K.ui.hideRetry(); };
     App.api.hooks.onAuthExpired = function(){
-      // Reto de resiliencia (401): limpiar token y volver a mostrar la
-      // pantalla de login (modo "expired"), SIN location.reload(). Al
-      // reautenticar con éxito se retoma la carga donde quedó, sin perder
-      // la vista actual ni el equipo favorito.
-      console.warn('[resiliencia] 401 → token limpiado, pidiendo re-login (sin reload)');
+      // 401: cualquier error de sesión cierra AMBAS capas (local + API) y
+      // pide reautenticación completa, sin location.reload() ni perder la
+      // vista actual ni el equipo favorito.
+      console.warn('[resiliencia] 401 → sesión cerrada, pidiendo reautenticación completa');
       K.ui.setConnection('offline');
-      App.auth.show('expired', async function(){
-        console.info('[resiliencia] reautenticación exitosa → recargando datos');
-        await loadAll();
+      App.storage.clearUnlocked();
+      App.auth.show('local-unlock', function(){
+        App.auth.show('expired', async function(){ await loadAll(); });
       });
     };
   }
@@ -249,17 +248,35 @@
     K.$('toggle-mock').addEventListener('change', function(e){ C.USE_MOCK=e.target.checked; console.info('[config] USE_MOCK =',C.USE_MOCK); loadAll(); });
     K.$('sim-select').addEventListener('change', function(e){ C.SIMULATE=e.target.value; console.info('[config] SIMULATE =',C.SIMULATE||'(normal)','target=',C.SIMULATE_TARGET); });
     K.$('sim-target').addEventListener('change', function(e){ C.SIMULATE_TARGET=e.target.value; console.info('[config] SIMULATE_TARGET =',C.SIMULATE_TARGET); });
+    K.$('btn-logout').addEventListener('click', logout);
   }
 
   /* ---------------------- Arranque ---------------------------------------- */
-  // Primera carga de datos tras conseguir un token válido (por login o
-  // porque ya había uno guardado). Único punto que aplica el tema del
-  // favorito recuperado, para no repetirlo en cada camino de bootstrap().
   async function loadAllAndApplyTheme(){
     await loadAll();
     if(state.favoriteId && K.store.teamById[state.favoriteId]){
       K.applyTeamTheme(K.store.teamById[state.favoriteId].color);
     }
+  }
+
+  // Capa de dispositivo (API real): sin token, hay que loguear primero
+  // ("new" o "returning") antes de pedir un solo /get/*.
+  async function ensureDeviceAuth(){
+    if(App.storage.getToken()){
+      await loadAllAndApplyTheme();
+    } else {
+      var hasDevice = !!(App.storage.getDeviceEmail() && App.storage.getDevicePassword());
+      App.auth.show(hasDevice ? 'returning' : 'new', loadAllAndApplyTheme);
+    }
+  }
+
+  // Cierra ambas capas de sesión (local + token de API) y vacía los datos en
+  // memoria: no debe quedar nada visible ni cargado tras cerrar sesión.
+  function logout(){
+    App.storage.clearToken();
+    App.storage.clearUnlocked();
+    K.resetStore();
+    App.auth.show('local-unlock', ensureDeviceAuth);
   }
 
   async function bootstrap(){
@@ -269,23 +286,18 @@
     wireEvents();
     App.auth.init();
     state.favoriteId = App.storage.getFavorite();
-    // Restaura la vista donde el usuario estaba antes del refresco (o Resumen
-    // si es la primera visita). Pinta el shell de inmediato con lo que haya
-    // en el store (vacío al inicio) para que nunca haya pantalla en blanco
-    // detrás de la pantalla de login.
+    // Pinta el shell (vacío) detrás del login para que nunca haya pantalla en
+    // blanco, y restaura la vista de antes del refresco (reto 2.4).
     var restored = App.storage.getLastView();
     go(restored && App.views[restored] ? restored : 'inicio');
 
-    // Sistema de login: sin token válido no se pide ni un solo /get/*. Si ya
-    // hay uno guardado (sesión previa en este navegador, típico tras F5) se
-    // salta la pantalla y se carga directo; si no, hay que loguear primero
-    // -ya sea por primera vez ("new") o reconectando una identidad guardada
-    // ("returning")- y solo entonces arranca loadAll().
-    if(App.storage.getToken()){
-      await loadAllAndApplyTheme();
+    // Sin desbloqueo local no se ve un solo dato: primero la capa de acceso
+    // (usuario/contraseña de este navegador), luego la de dispositivo (API).
+    if(App.storage.isUnlocked()){
+      await ensureDeviceAuth();
     } else {
-      var hasDevice = !!(App.storage.getDeviceEmail() && App.storage.getDevicePassword());
-      App.auth.show(hasDevice ? 'returning' : 'new', loadAllAndApplyTheme);
+      var hasLocalUser = !!App.storage.getLocalUser();
+      App.auth.show(hasLocalUser ? 'local-unlock' : 'local-new', ensureDeviceAuth);
     }
   }
 

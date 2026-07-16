@@ -1,25 +1,9 @@
 /* ============================================================================
- * fonts.css — Tipografías autoalojadas (funcionan sin conexión)
- * ----------------------------------------------------------------------------
- * Sistema tipográfico oficial del Mundial 2026, tal como la guía de marca:
- *   - Display  → "FWC2026 UltraCondensed" (el Event Typeface: condensado, alto,
- *                impactante). Titulares, marcadores, nav, códigos de equipo.
- *   - Cuerpo/números → "Noto Sans" (la tipografía de soporte oficial). El
- *                cuerpo del texto y los NÚMEROS de marcador (la guía marca los
- *                dígitos como "Noto Sans Bold").
- *
- * Ambas se autoalojan como .woff2 para no depender de ningún CDN.
- *
- * LICENCIA: la familia FWC2026 UltraCondensed es una recreación de la
- * comunidad de USO PERSONAL / NO COMERCIAL (no OFL, no redistribuible). Se usa
- * aquí únicamente por tratarse de un proyecto académico sin fines de lucro
- * (ISW-521). Noto Sans es SIL OFL 1.1. Ver assets/fonts/ para las licencias.
+ * fonts.css — Tipografías autoalojadas (.woff2, sin CDN). Licencias en
+ * assets/fonts/ — detalle completo en docs/ARCHITECTURE.md.
  * ==========================================================================*/
 
-/* --- FWC2026 UltraCondensed (display / event typeface) -------------------
- * Un solo archivo físico (peso "Medium"). El rango font-weight: 100 900 le
- * dice al navegador que este archivo cubre TODOS los pesos, de modo que nunca
- * sintetice un "faux bold" (que en una condensada se ve sucio y deforme). */
+/* font-weight: 100 900 evita que el navegador sintetice un "faux bold". */
 @font-face {
   font-family: "FWC26";
   font-style: normal;
@@ -28,10 +12,7 @@
   src: url("../assets/fonts/fwc26-ultracondensed.woff2") format("woff2");
 }
 
-/* --- FIFA 26 (logotipo) — solo para el slogan/wordmark "WE ARE 26" -------
- * Fuente de logotipo, muy pesada y redondeada (la de "WE ARE 26"). Uso muy
- * puntual: NO es para texto corrido. Misma condición de licencia de uso
- * personal / no comercial que FWC26 (ver assets/fonts/). */
+/* Solo para el slogan "WE ARE 26" — no usar en texto corrido. */
 @font-face {
   font-family: "FIFA26 Logo";
   font-style: normal;

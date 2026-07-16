@@ -1,9 +1,17 @@
 # Guía de login — cómo funciona en este entorno
 
-El login no usa usuario/contraseña de curso: cada **navegador** se registra a
-sí mismo una única vez ante la API real (`worldcup26.ir`) con una identidad
-generada localmente, y la reutiliza en cada visita. No hay ningún dato
-personal real involucrado — es una identidad de dispositivo, no de persona.
+El acceso tiene **dos capas**, ambas obligatorias antes de ver un solo dato
+(detalle completo en [ARCHITECTURE.md](ARCHITECTURE.md)):
+
+1. **Login local**: usuario y contraseña que vos elegís, para proteger el
+   dashboard en este navegador (hash SHA-256 en `localStorage`, sin servidor
+   de por medio).
+2. **Identidad de dispositivo**: cada navegador se registra a sí mismo una
+   única vez ante la API real (`worldcup26.ir`) con una identidad generada
+   localmente, y la reutiliza en cada visita. No hay ningún dato personal
+   real involucrado — es una identidad de dispositivo, no de persona.
+
+Esta sección se enfoca en la capa 2 (la que depende de la API real).
 
 ## TL;DR — para que el login funcione, usá `npm start`
 

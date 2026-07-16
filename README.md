@@ -17,7 +17,7 @@
 
 ## Índice
 
-[Vistas](#vistas) · [Resiliencia](#resiliencia--sesión) · [Guía de login](docs/LOGIN.md) · [Stack](#stack) · [Arquitectura](#arquitectura) · [Cómo ejecutarlo](#cómo-ejecutarlo)
+[Vistas](#vistas) · [Resiliencia](#resiliencia--sesión) · [Guía de login](docs/LOGIN.md) · [Arquitectura y decisiones de diseño](docs/ARCHITECTURE.md) · [Stack](#stack) · [Arquitectura](#arquitectura) · [Cómo ejecutarlo](#cómo-ejecutarlo)
 
 ## Vistas
 

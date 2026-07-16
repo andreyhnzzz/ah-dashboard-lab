@@ -1,12 +1,6 @@
 /* ============================================================================
- * auth.css — Pantalla de login / re-login (device identity + errores 401)
- * ----------------------------------------------------------------------------
- * Referencia visual: el login minimalista de claude.ai — tarjeta blanca
- * centrada, fondo crema, un único botón de acento cálido, tipografía limpia
- * y sin ruido. Se reutiliza para TRES momentos del mismo flujo de sesión:
- *   1. "new"       → primera vez en este navegador (aún no hay identidad).
- *   2. "returning" → ya existe identidad guardada, solo hace falta token.
- *   3. "expired"   → un 401 (real o simulado) invalidó el token en curso.
+ * auth.css — Pantalla de acceso: login local + identidad de dispositivo.
+ * Estados en docs/ARCHITECTURE.md.
  * ==========================================================================*/
 
 body.auth-open { overflow: hidden; }

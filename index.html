@@ -97,6 +97,12 @@
       <symbol id="icon-check" viewBox="0 0 24 24">
         <path d="M4.75 12.4 9.5 17l9.75-10.4"/>
       </symbol>
+      <!-- Cerrar sesión -->
+      <symbol id="icon-logout" viewBox="0 0 24 24">
+        <path d="M9 4H6.75A1.75 1.75 0 0 0 5 5.75v12.5A1.75 1.75 0 0 0 6.75 20H9"/>
+        <path d="M16 16.5 20.25 12 16 7.5"/>
+        <path d="M20 12H9.5"/>
+      </symbol>
       <!-- Accesibilidad (símbolo de acceso universal) -->
       <symbol id="icon-access" viewBox="0 0 24 24">
         <circle cx="12" cy="12" r="9"/>
@@ -132,6 +138,9 @@
       <div class="sidebar__slogan">
         <span class="slogan" aria-label="We are 26">WE<br>ARE<br>26</span>
       </div>
+      <button class="btn btn--ghost sidebar__logout" id="btn-logout" type="button">
+        <svg class="icon" aria-hidden="true"><use href="#icon-logout"></use></svg> Cerrar sesión
+      </button>
       <p class="sidebar__foot">ISW-521 · Categoría B<br>Todos los apartados</p>
     </aside>
 
@@ -250,7 +259,19 @@
       <div id="auth-status" class="auth-status" hidden role="status" aria-live="polite"></div>
 
       <form id="auth-form" class="auth-form">
-        <div class="auth-field" id="auth-field-name">
+        <div class="auth-field" id="auth-field-user" hidden>
+          <label class="auth-field__label" for="auth-user">Usuario</label>
+          <input type="text" id="auth-user" class="auth-input" autocomplete="username" maxlength="32" placeholder="tu_usuario">
+        </div>
+        <div class="auth-field" id="auth-field-pass" hidden>
+          <label class="auth-field__label" for="auth-pass">Contraseña</label>
+          <input type="password" id="auth-pass" class="auth-input" autocomplete="current-password" minlength="4" maxlength="64">
+        </div>
+        <div class="auth-field" id="auth-field-pass2" hidden>
+          <label class="auth-field__label" for="auth-pass2">Confirmar contraseña</label>
+          <input type="password" id="auth-pass2" class="auth-input" autocomplete="new-password" minlength="4" maxlength="64">
+        </div>
+        <div class="auth-field" id="auth-field-name" hidden>
           <label class="auth-field__label" for="auth-name">Nombre para mostrar</label>
           <input type="text" id="auth-name" class="auth-input" autocomplete="off" maxlength="40" placeholder="Fanático ISW-521">
         </div>
@@ -261,7 +282,7 @@
         <button type="submit" class="btn auth-submit" id="auth-submit">Continuar</button>
       </form>
 
-      <p class="auth-card__foot">Identidad de dispositivo generada localmente (correo y contraseña únicos para este navegador) solo para poder consultar la API del Mundial 2026 — no se piden ni se guardan datos personales reales.</p>
+      <p class="auth-card__foot" id="auth-foot">El usuario y contraseña de acceso se guardan solo en este navegador (nunca en un servidor). Además, se genera una identidad de dispositivo local para poder consultar la API del Mundial 2026 — no se piden ni se guardan datos personales reales.</p>
     </div>
   </div>
 
