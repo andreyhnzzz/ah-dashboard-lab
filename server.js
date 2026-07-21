@@ -88,7 +88,12 @@ function serveStatic(req, res) {
     var ext = path.extname(filePath).toLowerCase();
     res.writeHead(200, {
       'Content-Type': MIME[ext] || 'application/octet-stream',
-      'Cache-Control': 'no-cache' // desarrollo: siempre la última versión
+      // no-store (no solo no-cache): sin ETag/Last-Modified el navegador no
+      // tiene con qué revalidar, así que "no-cache" igual puede servir una
+      // copia vieja. En desarrollo esto se nota fuerte: si abriste la app
+      // antes de que existiera el login/logout, el navegador puede quedarse
+      // sirviendo ese JS viejo indefinidamente en visitas futuras.
+      'Cache-Control': 'no-store, no-cache, must-revalidate'
     });
     fs.createReadStream(filePath).pipe(res);
   });
