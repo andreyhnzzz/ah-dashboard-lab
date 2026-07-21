@@ -221,6 +221,90 @@
     if(state.currentId==='fanatico'){ App.views.fanatico.render(K.$('view')); }
   }
 
+  /* ---------------------- Panel de accesibilidad --------------------------- */
+  var FONT_SCALE_MIN = 80, FONT_SCALE_MAX = 160, FONT_SCALE_STEP = 10;
+
+  function setA11yPanelOpen(open){
+    var fab = K.$('a11y-fab'), panel = K.$('a11y-panel');
+    panel.hidden = !open;
+    fab.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if(open){ panel.querySelector('.a11y-panel__close').focus(); }
+  }
+
+  function applyFontScale(pct){
+    document.documentElement.style.fontSize = pct + '%';
+    K.$('a11y-fs-value').textContent = pct + '%';
+  }
+
+  // [id del checkbox, clase aplicada a <body>, getter, setter] — un solo
+  // patrón para todos los ajustes booleanos del panel (evita repetir el
+  // wiring de cada toggle y permite recorrerlos también en "Restablecer").
+  function a11yToggles(){
+    return [
+      ['toggle-colorblind', 'colorblind',       App.storage.getColorblind, App.storage.setColorblind],
+      ['toggle-contrast',   'a11y-contrast',     App.storage.getContrast,   App.storage.setContrast],
+      ['toggle-dyslexia',   'a11y-dyslexia',     App.storage.getDyslexia,   App.storage.setDyslexia],
+      ['toggle-links',      'a11y-links',        App.storage.getLinks,      App.storage.setLinks],
+      ['toggle-cursor',     'a11y-cursor',       App.storage.getCursor,     App.storage.setCursor],
+      ['toggle-motion',     'a11y-pause-motion', App.storage.getPauseMotion, App.storage.setPauseMotion]
+    ];
+  }
+
+  function wireA11yPanel(){
+    K.$('a11y-fab').addEventListener('click', function(){
+      setA11yPanelOpen(K.$('a11y-panel').hidden);
+    });
+    K.$('a11y-close').addEventListener('click', function(){ setA11yPanelOpen(false); });
+    document.addEventListener('keydown', function(e){
+      if(e.key==='Escape' && !K.$('a11y-panel').hidden){ setA11yPanelOpen(false); K.$('a11y-fab').focus(); }
+    });
+    document.addEventListener('click', function(e){
+      if(K.$('a11y-panel').hidden){ return; }
+      if(e.target.closest('.a11y-widget')){ return; }
+      setA11yPanelOpen(false);
+    });
+
+    // Tamaño de texto: escala el font-size raíz (rem) en pasos de 10%,
+    // 80%–160%. No sustituye el zoom del navegador: es un ajuste propio de
+    // la app que no rompe el layout (todo el sistema tipográfico es rem).
+    var fontScale = App.storage.getFontScale();
+    applyFontScale(fontScale);
+    K.$('a11y-fs-dec').addEventListener('click', function(){
+      fontScale = Math.max(FONT_SCALE_MIN, fontScale - FONT_SCALE_STEP);
+      applyFontScale(fontScale); App.storage.setFontScale(fontScale);
+    });
+    K.$('a11y-fs-inc').addEventListener('click', function(){
+      fontScale = Math.min(FONT_SCALE_MAX, fontScale + FONT_SCALE_STEP);
+      applyFontScale(fontScale); App.storage.setFontScale(fontScale);
+    });
+
+    // Toggles booleanos (alto contraste, fuente de lectura fácil, enlaces,
+    // cursor grande, pausar animaciones, modo daltónico): restaura el estado
+    // guardado y engancha el cambio a clase de <body> + persistencia.
+    var toggles = a11yToggles();
+    toggles.forEach(function(t){
+      var id=t[0], cls=t[1], get=t[2], set=t[3];
+      var input = K.$(id), on = get();
+      input.checked = on;
+      document.body.classList.toggle(cls, on);
+      input.addEventListener('change', function(e){
+        document.body.classList.toggle(cls, e.target.checked);
+        set(e.target.checked);
+      });
+    });
+
+    K.$('a11y-reset').addEventListener('click', function(){
+      toggles.forEach(function(t){
+        K.$(t[0]).checked = false;
+        document.body.classList.remove(t[1]);
+        t[3](false);
+      });
+      fontScale = 100;
+      applyFontScale(fontScale);
+      App.storage.setFontScale(fontScale);
+    });
+  }
+
   /* ---------------------- Eventos ----------------------------------------- */
   function wireEvents(){
     // Navegación (delegación sobre la lista).
@@ -249,6 +333,7 @@
     K.$('sim-select').addEventListener('change', function(e){ C.SIMULATE=e.target.value; console.info('[config] SIMULATE =',C.SIMULATE||'(normal)','target=',C.SIMULATE_TARGET); });
     K.$('sim-target').addEventListener('change', function(e){ C.SIMULATE_TARGET=e.target.value; console.info('[config] SIMULATE_TARGET =',C.SIMULATE_TARGET); });
     K.$('btn-logout').addEventListener('click', logout);
+    wireA11yPanel();
   }
 
   /* ---------------------- Arranque ---------------------------------------- */
