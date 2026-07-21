@@ -222,26 +222,6 @@
 
       <footer class="app-footer">
         <p>Proyecto Final ISW-521 · Categoría B · Interfaces Interactivas y DOM Avanzado · Datos: API del Mundial 2026 (worldcup26.ir).</p>
-
-        <!-- Declaración de accesibilidad y cumplimiento normativo. Discreta
-             (opacidad baja en reposo) pero ubicable y accesible: se abre por
-             clic o teclado, y el foco/hover la lleva a opacidad plena. -->
-        <details class="a11y">
-          <summary class="a11y__summary">
-            <svg class="icon" aria-hidden="true"><use href="#icon-access"></use></svg>
-            <span>Accesibilidad · WCAG 2.1 AA · Ley N.º 7600 (Costa Rica)</span>
-          </summary>
-          <div class="a11y__panel">
-            <p class="a11y__intro">Este panel se diseñó siguiendo las <strong>Pautas de Accesibilidad para el Contenido Web (WCAG 2.1), nivel AA</strong>, y en apego a la <strong>Ley N.º 7600 de Igualdad de Oportunidades para las Personas con Discapacidad</strong> de Costa Rica y su reglamento, que garantizan el acceso equitativo a la información.</p>
-            <ul class="a11y__list">
-              <li><strong>Perceptible:</strong> contraste de color validado (AA), texto redimensionable, íconos decorativos con <code>aria-hidden</code> y banderas con texto alternativo.</li>
-              <li><strong>Operable:</strong> navegación completa por teclado, foco visible, enlace «Saltar al contenido» y respeto por <code>prefers-reduced-motion</code>.</li>
-              <li><strong>Comprensible:</strong> idioma declarado (<code>lang="es"</code>), etiquetas y roles ARIA, y estados dinámicos anunciados con regiones <code>aria-live</code>.</li>
-              <li><strong>Robusto:</strong> HTML semántico compatible con lectores de pantalla y tecnologías de apoyo.</li>
-            </ul>
-            <p class="a11y__note">Cualquier barrera de acceso detectada puede reportarse para su corrección, conforme al principio de mejora continua de la Ley 7600.</p>
-          </div>
-        </details>
       </footer>
     </div>
   </div>
@@ -283,6 +263,74 @@
       </form>
 
       <p class="auth-card__foot" id="auth-foot">El usuario y contraseña de acceso se guardan solo en este navegador (nunca en un servidor). Además, se genera una identidad de dispositivo local para poder consultar la API del Mundial 2026 — no se piden ni se guardan datos personales reales.</p>
+    </div>
+  </div>
+
+  <!-- ===================== Botón de accesibilidad (siempre visible) =====================
+       Flotante y fijo en todas las vistas (a diferencia de la antigua declaración
+       enterrada en el footer, que quedaba fuera de pantalla con scroll). Abre un
+       panel con las cuatro secciones WCAG 2.1 AA (POUR) y el modo daltónico
+       (paleta segura para daltonismo, ver css/tokens.css → body.colorblind). -->
+  <div class="a11y-widget">
+    <button type="button" id="a11y-fab" class="a11y-fab" aria-haspopup="dialog" aria-expanded="false" aria-controls="a11y-panel" title="Accesibilidad">
+      <svg class="icon" aria-hidden="true"><use href="#icon-access"></use></svg>
+      <span class="visually-hidden">Abrir panel de accesibilidad</span>
+    </button>
+    <div id="a11y-panel" class="a11y-panel" role="dialog" aria-label="Accesibilidad" aria-modal="false" hidden>
+      <div class="a11y-panel__head">
+        <strong><svg class="icon" aria-hidden="true"><use href="#icon-access"></use></svg> Accesibilidad · WCAG 2.1 AA · Ley N.º 7600 (Costa Rica)</strong>
+        <button type="button" id="a11y-close" class="a11y-panel__close" aria-label="Cerrar panel de accesibilidad">
+          <svg class="icon" aria-hidden="true"><use href="#icon-error"></use></svg>
+        </button>
+      </div>
+      <p class="a11y__intro">Este panel se diseñó siguiendo las <strong>Pautas de Accesibilidad para el Contenido Web (WCAG 2.1), nivel AA</strong>, y en apego a la <strong>Ley N.º 7600 de Igualdad de Oportunidades para las Personas con Discapacidad</strong> de Costa Rica y su reglamento, que garantizan el acceso equitativo a la información.</p>
+      <ul class="a11y__list">
+        <li><strong>Perceptible:</strong> contraste de color validado (AA), texto redimensionable, íconos decorativos con <code>aria-hidden</code>, banderas con texto alternativo y modo daltónico opcional (abajo).</li>
+        <li><strong>Operable:</strong> navegación completa por teclado, foco visible, enlace «Saltar al contenido» y respeto por <code>prefers-reduced-motion</code>.</li>
+        <li><strong>Comprensible:</strong> idioma declarado (<code>lang="es"</code>), etiquetas y roles ARIA, y estados dinámicos anunciados con regiones <code>aria-live</code>.</li>
+        <li><strong>Robusto:</strong> HTML semántico compatible con lectores de pantalla y tecnologías de apoyo.</li>
+      </ul>
+      <div class="a11y-panel__controls">
+        <span class="a11y-panel__heading" id="a11y-controls-heading">Ajustes de visualización</span>
+
+        <div class="a11y-panel__group" role="group" aria-labelledby="a11y-fontsize-label">
+          <span class="a11y-panel__label" id="a11y-fontsize-label">Tamaño de texto</span>
+          <div class="a11y-stepper">
+            <button type="button" id="a11y-fs-dec" class="a11y-stepper__btn" aria-label="Reducir tamaño de texto">A−</button>
+            <span id="a11y-fs-value" class="a11y-stepper__value" aria-live="polite">100%</span>
+            <button type="button" id="a11y-fs-inc" class="a11y-stepper__btn" aria-label="Aumentar tamaño de texto">A+</button>
+          </div>
+        </div>
+
+        <label class="a11y-panel__toggle">
+          <input type="checkbox" id="toggle-contrast">
+          <span>Alto contraste — fondo negro y texto blanco</span>
+        </label>
+        <label class="a11y-panel__toggle">
+          <input type="checkbox" id="toggle-dyslexia">
+          <span>Fuente de lectura fácil — tipografía simple y espaciado ampliado</span>
+        </label>
+        <label class="a11y-panel__toggle">
+          <input type="checkbox" id="toggle-links">
+          <span>Resaltar enlaces — subrayado evidente</span>
+        </label>
+        <label class="a11y-panel__toggle">
+          <input type="checkbox" id="toggle-cursor">
+          <span>Cursor grande</span>
+        </label>
+        <label class="a11y-panel__toggle">
+          <input type="checkbox" id="toggle-motion">
+          <span>Pausar animaciones — detiene movimiento, transiciones y parpadeos</span>
+        </label>
+        <label class="a11y-panel__toggle">
+          <input type="checkbox" id="toggle-colorblind">
+          <span>Modo daltónico — paleta de grupos y estados segura para daltonismo</span>
+        </label>
+
+        <button type="button" id="a11y-reset" class="a11y-panel__reset">Restablecer ajustes</button>
+      </div>
+
+      <p class="a11y__note">Estos ajustes son un complemento visual; la base del sitio ya es accesible por teclado y lectores de pantalla (etiquetas ARIA, foco visible, HTML semántico). Cualquier barrera de acceso detectada puede reportarse para su corrección, conforme al principio de mejora continua de la Ley 7600.</p>
     </div>
   </div>
 
