@@ -68,25 +68,43 @@ function proxy(req, res) {
   });
 }
 
+// Cabeceras de seguridad mínimas para todas las respuestas estáticas. No
+// sustituyen un WAF ni una CSP completa, pero son higiene básica de industria:
+// evitan el sniffing de MIME, el framing (clickjacking) y la fuga de referrer.
+var SECURITY_HEADERS = {
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'Referrer-Policy': 'no-referrer'
+};
+
+// Confina una ruta pedida a ROOT sin caer en el bug de "prefijo de string":
+// comparar con `indexOf(ROOT)===0` deja pasar directorios hermanos cuyo nombre
+// empieza igual (ROOT="/app" admitiría "/app-secreto"). Se exige que sea ROOT
+// exacto o que continúe con el separador de ruta del SO.
+function resolveWithinRoot(urlPath) {
+  var filePath = path.normalize(path.join(ROOT, urlPath));
+  if (filePath !== ROOT && filePath.indexOf(ROOT + path.sep) !== 0) { return null; }
+  return filePath;
+}
+
 // Sirve archivos del proyecto de forma segura (sin path traversal).
 function serveStatic(req, res) {
   var urlPath = decodeURIComponent(req.url.split('?')[0]);
   if (urlPath === '/') { urlPath = '/index.html'; }
 
-  // Normaliza y confina la ruta a ROOT (evita ../ escapando del proyecto).
-  var filePath = path.normalize(path.join(ROOT, urlPath));
-  if (filePath.indexOf(ROOT) !== 0) {
-    res.writeHead(403); res.end('Forbidden'); return;
+  var filePath = resolveWithinRoot(urlPath);
+  if (!filePath) {
+    res.writeHead(403, SECURITY_HEADERS); res.end('Forbidden'); return;
   }
 
   fs.stat(filePath, function (err, stat) {
     if (err || !stat.isFile()) {
-      res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.writeHead(404, Object.assign({ 'Content-Type': 'text/plain; charset=utf-8' }, SECURITY_HEADERS));
       res.end('404 Not Found: ' + urlPath);
       return;
     }
     var ext = path.extname(filePath).toLowerCase();
-    res.writeHead(200, {
+    res.writeHead(200, Object.assign({
       'Content-Type': MIME[ext] || 'application/octet-stream',
       // no-store (no solo no-cache): sin ETag/Last-Modified el navegador no
       // tiene con qué revalidar, así que "no-cache" igual puede servir una
@@ -94,7 +112,7 @@ function serveStatic(req, res) {
       // antes de que existiera el login/logout, el navegador puede quedarse
       // sirviendo ese JS viejo indefinidamente en visitas futuras.
       'Cache-Control': 'no-store, no-cache, must-revalidate'
-    });
+    }, SECURITY_HEADERS));
     fs.createReadStream(filePath).pipe(res);
   });
 }
