@@ -62,6 +62,16 @@
 
   --transition: 0.25s ease;
 
+  /* --- Duración de las animaciones "amplify pattern" (fuente única) ---------
+   * El wipe de transición entre vistas y el destello de los marcadores usan el
+   * mismo patrón oficial (assets/pattern-amplify.svg). js/app.js deriva sus
+   * timeouts de estas variables, así CSS y JS nunca se desincronizan.
+   * Valores alargados +0,57 s respecto de la base para poder apreciar mejor el
+   * efecto (wipe total base 0,32 s + 0,34 s → +0,57 s; destello 0,60 s → +0,57 s). */
+  --wipe-cover-dur:  0.60s;  /* fase de cobertura  (base 0,32 s + 0,28 s) */
+  --wipe-reveal-dur: 0.63s;  /* fase de revelado   (base 0,34 s + 0,29 s) */
+  --marker-burst-dur: 1.17s; /* destello amplify del marcador (base 0,60 s + 0,57 s) */
+
   /* --- Login: acento propio (violeta), independiente del acento por equipo --- */
   --auth-bg:               #f4f1f8;
   --auth-card-bg:          #ffffff;

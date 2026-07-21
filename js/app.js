@@ -65,15 +65,32 @@
     }
 
     // Transición de "explosión de colores" horizontal entre vistas (no aplica
-    // en la primera carga, ni si el usuario prefiere menos movimiento).
-    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if(isFirst || reduceMotion){ swap(); return; }
+    // en la primera carga, ni si el usuario prefiere menos movimiento por el
+    // SO o por el panel de accesibilidad → "pausar animaciones").
+    if(isFirst || motionReduced()){ swap(); return; }
     playWipe(function(){
       swap();
       el.classList.remove('view--entering');
       void el.offsetWidth;          // reinicia la animación de entrada
       el.classList.add('view--entering');
     });
+  }
+
+  // ¿Debe omitirse el movimiento? Por preferencia del SO o por el toggle
+  // "pausar animaciones" del panel de accesibilidad (clase en <body>).
+  function motionReduced(){
+    var os = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    return !!os || document.body.classList.contains('a11y-pause-motion');
+  }
+
+  // Lee una duración declarada como variable CSS ('0.6s' / '600ms') y la
+  // devuelve en milisegundos. Mantiene el timing de CSS y JS en una sola fuente
+  // (css/tokens.css → --wipe-*): cambiar la duración ahí basta para todo.
+  function cssDurationMs(varName, fallback){
+    var raw = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+    var n = parseFloat(raw);
+    if(!raw || isNaN(n)){ return fallback; }
+    return raw.indexOf('ms') > -1 ? n : n * 1000;
   }
 
   // Reproduce el overlay de colores oficiales: estalla desde el centro para
@@ -83,6 +100,8 @@
   function playWipe(onCovered){
     var wipe = K.$('wc-wipe');
     if(!wipe || wipeBusy){ onCovered(); return; }
+    var coverMs = cssDurationMs('--wipe-cover-dur', 600);
+    var revealMs = cssDurationMs('--wipe-reveal-dur', 630);
     wipeBusy = true;
     wipe.classList.remove('is-revealing');
     void wipe.offsetWidth;
@@ -95,8 +114,8 @@
       setTimeout(function(){
         wipe.classList.remove('is-revealing');
         wipeBusy = false;
-      }, 340);
-    }, 300);
+      }, revealMs);
+    }, coverMs);
   }
   App.app = App.app || {};
   App.app.go = go;

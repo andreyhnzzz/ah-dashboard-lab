@@ -165,11 +165,14 @@ select { font: inherit; font-size: var(--fs-sm); padding: 6px var(--sp-3); borde
   overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.22);
   animation: scBarReveal 0.5s 0.1s cubic-bezier(.4,0,.2,1) both;
 }
-/* Destello del patrón amplify que estalla desde el centro al aparecer. */
+/* Destello del patrón amplify que estalla desde el centro al aparecer. Su
+ * duración (var --marker-burst-dur, en css/tokens.css) está alargada +0,57 s
+ * para apreciar mejor el patrón; es un overlay que se desvanece a opacity 0,
+ * así alargarlo solo hace que el destello perdure, sin desfasar la tarjeta. */
 .scorecard__bar::before {
   content: ""; position: absolute; inset: 0; z-index: 6; pointer-events: none;
   background: url("../assets/pattern-amplify.svg") center center / cover no-repeat;
-  animation: scBurst 0.6s 0.05s cubic-bezier(.3,0,.2,1) both;
+  animation: scBurst var(--marker-burst-dur) 0.05s cubic-bezier(.3,0,.2,1) both;
 }
 .scorecard__side {
   flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 8px;

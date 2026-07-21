@@ -108,12 +108,20 @@ body {
   width: 26vmin; height: 26vmin; object-fit: contain;
   filter: drop-shadow(0 6px 30px rgba(0,0,0,0.4));
 }
-.wc-wipe.is-covering { opacity: 1; visibility: visible; animation: wcExplode 0.32s cubic-bezier(.5,0,.2,1) forwards; }
-.wc-wipe.is-revealing { opacity: 1; visibility: visible; animation: wcImplode 0.34s cubic-bezier(.5,0,.2,1) forwards; }
-.wc-wipe.is-covering .wc-wipe__bands { animation: wcAmplifyIn 0.32s cubic-bezier(.4,0,.2,1) forwards; }
-.wc-wipe.is-revealing .wc-wipe__bands { animation: wcAmplifyOut 0.34s cubic-bezier(.4,0,.2,1) forwards; }
-.wc-wipe.is-covering .wc-wipe__mark { animation: wcMarkIn 0.32s cubic-bezier(.34,1.3,.64,1) forwards; }
-.wc-wipe.is-revealing .wc-wipe__mark { animation: wcMarkOut 0.34s cubic-bezier(.4,0,.2,1) forwards; }
+.wc-wipe.is-covering { opacity: 1; visibility: visible; animation: wcExplode var(--wipe-cover-dur) cubic-bezier(.5,0,.2,1) forwards; }
+.wc-wipe.is-revealing { opacity: 1; visibility: visible; animation: wcImplode var(--wipe-reveal-dur) cubic-bezier(.5,0,.2,1) forwards; }
+.wc-wipe.is-covering .wc-wipe__bands { animation: wcAmplifyIn var(--wipe-cover-dur) cubic-bezier(.4,0,.2,1) forwards; }
+.wc-wipe.is-revealing .wc-wipe__bands { animation: wcAmplifyOut var(--wipe-reveal-dur) cubic-bezier(.4,0,.2,1) forwards; }
+.wc-wipe.is-covering .wc-wipe__mark { animation: wcMarkIn var(--wipe-cover-dur) cubic-bezier(.34,1.3,.64,1) forwards; }
+.wc-wipe.is-revealing .wc-wipe__mark { animation: wcMarkOut var(--wipe-reveal-dur) cubic-bezier(.4,0,.2,1) forwards; }
+
+/* Promoción a capa de compositor SOLO mientras el wipe corre (las clases las
+ * quita js/app.js al terminar), para no dejar una capa a pantalla completa
+ * permanente. Evita el repintado por frame del SVG escalado y del drop-shadow
+ * del emblema: se rasterizan una vez y el resto es transform/opacity en GPU. */
+.wc-wipe.is-covering, .wc-wipe.is-revealing { will-change: clip-path; }
+.wc-wipe.is-covering .wc-wipe__bands, .wc-wipe.is-revealing .wc-wipe__bands { will-change: transform; }
+.wc-wipe.is-covering .wc-wipe__mark, .wc-wipe.is-revealing .wc-wipe__mark { will-change: transform, opacity; }
 @keyframes wcExplode { from { clip-path: inset(0 50% 0 50%); } to { clip-path: inset(0 0 0 0); } }
 @keyframes wcImplode { from { clip-path: inset(0 0 0 0); } to { clip-path: inset(0 50% 0 50%); } }
 @keyframes wcAmplifyIn  { from { transform: scale(0.18); } to { transform: scale(1.3); } }
@@ -122,7 +130,7 @@ body {
 @keyframes wcMarkOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(2.2); } }
 
 /* Entrada de la vista nueva tras el wipe. */
-.view--entering { animation: viewEnter 0.32s ease both; }
+.view--entering { animation: viewEnter 0.32s ease both; will-change: transform, opacity; }
 @keyframes viewEnter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
 /* Franja de color oficial, como marco de sección en las referencias del
@@ -247,6 +255,15 @@ body {
   transition: none !important;
   scroll-behavior: auto !important;
 }
+/* El wipe de transición se oculta por completo (js/app.js además lo omite),
+ * y los marcadores del dashboard quedan en su estado final estático — igual
+ * que en @media (prefers-reduced-motion): sin destello, copa oculta y emblema
+ * visible. Así "pausar animaciones" también detiene la animación de marcadores. */
+.a11y-pause-motion .wc-wipe { display: none !important; }
+.a11y-pause-motion .scorecard__bar { clip-path: none !important; }
+.a11y-pause-motion .scorecard__bar::before { display: none !important; }
+.a11y-pause-motion .scorecard__mark--trophy { opacity: 0 !important; }
+.a11y-pause-motion .scorecard__mark--emblem { opacity: 1 !important; }
 
 .a11y__intro { margin: 0 0 var(--sp-3); }
 .a11y__list { margin: 0 0 var(--sp-3); padding-left: 1.1rem; display: flex; flex-direction: column; gap: 5px; }
