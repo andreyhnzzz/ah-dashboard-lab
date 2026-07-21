@@ -116,3 +116,39 @@
     --auth-ring:             rgba(155, 127, 230, 0.35);
   }
 }
+
+/* --- Modo daltónico: paleta segura (Okabe-Ito / Paul Tol), activable desde
+ * el panel de accesibilidad (ver js/app.js → toggle-colorblind). Se aplica
+ * sobre .colorblind con mayor especificidad que :root, así que gana tanto en
+ * modo claro como oscuro sin duplicar reglas. Reemplaza los 12 tonos por
+ * grupo (el par rojo/verde es el más común de confundir) y los 4 estados
+ * (good/warning/danger/info), que antes dependían del contraste rojo-verde. */
+.colorblind {
+  --grp-a: #0072B2; --grp-b: #E69F00; --grp-c: #009E73; --grp-d: #CC79A7;
+  --grp-e: #F0E442; --grp-f: #56B4E9; --grp-g: #D55E00; --grp-h: #4477AA;
+  --grp-i: #AA3377; --grp-j: #228833; --grp-k: #66CCEE; --grp-l: #BBBBBB;
+
+  --good:    #0072B2;
+  --warning: #E69F00;
+  --danger:  #D55E00;
+  --info:    #56B4E9;
+}
+
+/* --- Alto contraste: fondo negro puro / texto blanco puro y bordes
+ * reforzados, activable desde el panel de accesibilidad. Misma técnica de
+ * especificidad que .colorblind (gana sobre :root en claro y oscuro). --- */
+.a11y-contrast {
+  --surface-page:   #000000;
+  --surface-1:      #000000;
+  --surface-2:      #111111;
+  --text-primary:   #ffffff;
+  --text-secondary: #ffffff;
+  --text-muted:     #e6e6e6;
+  --border:         #ffffff;
+  --border-strong:  #ffffff;
+  --team-accent:          #ffe600;
+  --team-accent-contrast: #000000;
+  --team-tint:            rgba(255, 230, 0, 0.16);
+  --team-tint-strong:     rgba(255, 230, 0, 0.28);
+}
+.a11y-contrast :focus-visible { outline: 3px solid #ffe600 !important; outline-offset: 2px !important; }
