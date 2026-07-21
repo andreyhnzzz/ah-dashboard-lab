@@ -144,33 +144,123 @@ body {
 }
 .app-footer > p { margin: 0; }
 
-/* Declaración de accesibilidad (WCAG 2.1 AA + Ley 7600): opacidad baja en
- * reposo, plena al pasar el mouse/enfocar/abrir — nunca inaccesible. */
-.a11y {
-  margin-top: var(--sp-2);
-  opacity: 0.32;
-  transition: opacity var(--transition);
+/* Botón de accesibilidad: flotante y fijo (siempre visible, en todas las
+ * vistas) a diferencia de la antigua declaración enterrada en el footer.
+ * Pulso sutil en reposo — mismo lenguaje que .wc-bar (nunca queda estático) —
+ * y panel que entra con fade + translateY, igual que .view--entering. */
+.a11y-widget { position: fixed; right: var(--sp-5); bottom: var(--sp-5); z-index: 60; }
+.a11y-fab {
+  width: 52px; height: 52px; border-radius: 50%; padding: 0;
+  display: grid; place-items: center; border: none; cursor: pointer;
+  background: var(--team-accent); color: var(--team-accent-contrast);
+  box-shadow: var(--shadow-2);
+  transition: transform var(--transition), box-shadow var(--transition), background var(--transition);
+  animation: a11yPulse 2.6s ease-in-out infinite;
 }
-.a11y:hover, .a11y:focus-within, .a11y[open] { opacity: 1; }
-.a11y__summary {
-  display: inline-flex; align-items: center; gap: 6px;
-  cursor: pointer; list-style: none; width: fit-content;
-  font-size: var(--fs-xs); font-weight: 600; color: var(--text-secondary);
+.a11y-fab:hover, .a11y-fab:focus-visible { transform: scale(1.08); }
+.a11y-fab:focus-visible { outline: 2px solid var(--team-accent); outline-offset: 3px; }
+.a11y-fab .icon { width: 24px; height: 24px; }
+@keyframes a11yPulse {
+  0%, 100% { box-shadow: var(--shadow-2), 0 0 0 0 var(--team-tint-strong); }
+  50%      { box-shadow: var(--shadow-2), 0 0 0 9px transparent; }
 }
-.a11y__summary::-webkit-details-marker { display: none; }
-.a11y__summary .icon { width: 1.05em; height: 1.05em; color: var(--team-accent); flex-shrink: 0; }
-.a11y__summary:focus-visible { outline: 2px solid var(--team-accent); outline-offset: 3px; border-radius: 4px; }
-.a11y__panel {
-  margin-top: var(--sp-3); max-width: 70ch;
+
+.a11y-panel {
+  position: absolute; right: 0; bottom: calc(100% + var(--sp-3));
+  width: min(360px, 84vw); max-height: 70vh; overflow-y: auto;
   padding: var(--sp-4); border: 1px solid var(--border); border-left: 3px solid var(--team-accent);
-  border-radius: var(--radius-sm); background: var(--surface-1);
+  border-radius: var(--radius-md); background: var(--surface-1); box-shadow: var(--shadow-2);
   font-size: var(--fs-xs); line-height: 1.55; color: var(--text-secondary);
+  animation: viewEnter 0.22s ease both;
 }
+.a11y-panel__head {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3);
+  margin-bottom: var(--sp-3); color: var(--text-primary);
+}
+.a11y-panel__head strong { display: inline-flex; align-items: center; gap: 6px; }
+.a11y-panel__head .icon { width: 1.05em; height: 1.05em; color: var(--team-accent); flex-shrink: 0; }
+.a11y-panel__close {
+  background: none; border: none; cursor: pointer; color: var(--text-muted);
+  padding: 2px; display: grid; place-items: center; border-radius: 4px; flex-shrink: 0;
+}
+.a11y-panel__close:hover, .a11y-panel__close:focus-visible { color: var(--text-primary); }
+.a11y-panel__close:focus-visible { outline: 2px solid var(--team-accent); outline-offset: 2px; }
+.a11y-panel__close .icon { width: 16px; height: 16px; }
+.a11y-panel__controls {
+  display: flex; flex-direction: column; gap: var(--sp-3);
+  margin: var(--sp-3) 0; padding-top: var(--sp-3); border-top: 1px solid var(--border);
+}
+.a11y-panel__heading { font-weight: 800; color: var(--text-primary); font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: 0.04em; }
+.a11y-panel__group { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); }
+.a11y-panel__label { font-weight: 600; color: var(--text-secondary); }
+.a11y-stepper { display: flex; align-items: center; gap: var(--sp-2); }
+.a11y-stepper__btn {
+  width: 28px; height: 28px; display: grid; place-items: center; padding: 0;
+  border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+  background: var(--surface-2); color: var(--text-primary); cursor: pointer;
+  font-weight: 800; font-size: var(--fs-xs); line-height: 1;
+  transition: background var(--transition), transform var(--transition);
+}
+.a11y-stepper__btn:hover { background: var(--team-tint); }
+.a11y-stepper__btn:focus-visible { outline: 2px solid var(--team-accent); outline-offset: 2px; }
+.a11y-stepper__btn:active { transform: scale(0.94); }
+.a11y-stepper__value { min-width: 3.4ch; text-align: center; font-weight: 700; color: var(--text-primary); }
+.a11y-panel__toggle { display: flex; align-items: center; gap: var(--sp-2); cursor: pointer; color: var(--text-secondary); font-weight: 600; }
+.a11y-panel__toggle input { width: 16px; height: 16px; accent-color: var(--team-accent); flex-shrink: 0; }
+.a11y-panel__reset {
+  align-self: flex-start; margin-top: var(--sp-1);
+  padding: 6px 12px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+  background: var(--surface-2); color: var(--text-secondary); font-size: var(--fs-xs); font-weight: 700;
+  cursor: pointer; transition: background var(--transition), color var(--transition);
+}
+.a11y-panel__reset:hover { background: var(--team-tint); color: var(--text-primary); }
+.a11y-panel__reset:focus-visible { outline: 2px solid var(--team-accent); outline-offset: 2px; }
+
+/* ===================== Modo daltónico se define en css/tokens.css (paleta de
+   tokens) — las cuatro reglas siguientes son los otros ajustes funcionales
+   del panel de accesibilidad, aplicados como clases sobre <body>. ========== */
+
+/* Fuente de lectura fácil: tipografía simple sin serifas ambiguas + espaciado
+ * generoso entre letras/palabras/líneas (recomendado para dislexia). Pisa
+ * font: inherit de .btn/.group-tab/etc. (ver docs/ARCHITECTURE.md) a propósito. */
+.a11y-dyslexia, .a11y-dyslexia * {
+  font-family: Verdana, Tahoma, "Trebuchet MS", Arial, sans-serif !important;
+  letter-spacing: 0.03em !important;
+  word-spacing: 0.16em !important;
+  line-height: 1.7 !important;
+}
+
+/* Resaltado de enlaces: todo <a> queda subrayado de forma evidente, más allá
+ * del color, para no depender solo de este último (perceptible sin color). */
+.a11y-links a { text-decoration: underline !important; text-decoration-thickness: 2.5px !important; text-underline-offset: 3px !important; }
+
+/* Cursor grande: flecha SVG embebida (sin depender de assets externos) al
+ * doble del tamaño habitual del puntero del sistema. */
+.a11y-cursor, .a11y-cursor * {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"><path d="M3 2 L3 20 L8 16 L11 22 L14 20.5 L11 14.5 L17 14.5 Z" fill="black" stroke="white" stroke-width="1.5" stroke-linejoin="round"/></svg>') 3 2, auto !important;
+}
+
+/* Pausa de animaciones: fuerza el mismo resultado que prefers-reduced-motion,
+ * pero como preferencia explícita del panel (no depende de la config del SO). */
+.a11y-pause-motion, .a11y-pause-motion * {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+
 .a11y__intro { margin: 0 0 var(--sp-3); }
 .a11y__list { margin: 0 0 var(--sp-3); padding-left: 1.1rem; display: flex; flex-direction: column; gap: 5px; }
 .a11y__list strong { color: var(--text-primary); }
-.a11y__panel code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92em; background: var(--surface-2); padding: 0 4px; border-radius: 4px; }
+.a11y-panel code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92em; background: var(--surface-2); padding: 0 4px; border-radius: 4px; }
 .a11y__note { margin: 0; color: var(--text-muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  .a11y-fab { animation: none; }
+  .a11y-panel { animation: none; }
+}
+@media (max-width: 560px) {
+  .a11y-widget { right: var(--sp-3); bottom: var(--sp-3); }
+}
 
 .section-title { font-size: var(--fs-md); font-weight: 800; letter-spacing: -0.01em; margin: 0 0 var(--sp-3); display: flex; align-items: center; gap: var(--sp-2); }
 .section-title::before { content: ""; width: 4px; height: 1.1em; border-radius: 2px; background: var(--g, var(--team-accent)); transition: background var(--transition); }
