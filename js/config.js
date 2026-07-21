@@ -34,6 +34,13 @@
       unlocked: 'wc26.unlocked', // sessionStorage: sesión local activa
       favorite: 'wc26.favoriteTeam',
       lastView: 'wc26.lastView',
+      colorblind: 'wc26.colorblind',
+      fontScale: 'wc26.a11y.fontScale',
+      contrast: 'wc26.a11y.contrast',
+      dyslexia: 'wc26.a11y.dyslexia',
+      links: 'wc26.a11y.links',
+      cursor: 'wc26.a11y.cursor',
+      pauseMotion: 'wc26.a11y.pauseMotion',
       cachePrefix: 'wc26.cache.'
     },
 
