@@ -1,3 +1,22 @@
 .claude
 node_modules
 npm-debug.log*
+
+# Variables de entorno / secretos locales (el proyecto no los necesita para
+# correr, pero si alguien agrega un .env que no termine en el repo).
+.env
+.env.*
+!.env.example
+
+# Artefactos de SO
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores / IDEs
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
