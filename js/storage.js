@@ -61,6 +61,28 @@
     getLastView: function () { return safeGet(S.lastView); },
     setLastView: function (id) { safeSet(S.lastView, id); },
 
+    // Ajustes del panel de accesibilidad: persisten entre sesiones.
+    getColorblind: function () { return safeGet(S.colorblind) === '1'; },
+    setColorblind: function (on) { if (on) { safeSet(S.colorblind, '1'); } else { safeRemove(S.colorblind); } },
+
+    getFontScale: function () { var v = parseInt(safeGet(S.fontScale), 10); return v || 100; },
+    setFontScale: function (pct) { safeSet(S.fontScale, String(pct)); },
+
+    getContrast: function () { return safeGet(S.contrast) === '1'; },
+    setContrast: function (on) { if (on) { safeSet(S.contrast, '1'); } else { safeRemove(S.contrast); } },
+
+    getDyslexia: function () { return safeGet(S.dyslexia) === '1'; },
+    setDyslexia: function (on) { if (on) { safeSet(S.dyslexia, '1'); } else { safeRemove(S.dyslexia); } },
+
+    getLinks: function () { return safeGet(S.links) === '1'; },
+    setLinks: function (on) { if (on) { safeSet(S.links, '1'); } else { safeRemove(S.links); } },
+
+    getCursor: function () { return safeGet(S.cursor) === '1'; },
+    setCursor: function (on) { if (on) { safeSet(S.cursor, '1'); } else { safeRemove(S.cursor); } },
+
+    getPauseMotion: function () { return safeGet(S.pauseMotion) === '1'; },
+    setPauseMotion: function (on) { if (on) { safeSet(S.pauseMotion, '1'); } else { safeRemove(S.pauseMotion); } },
+
     // Caché offline por endpoint: última respuesta buena + timestamp.
     cacheResponse: function (endpoint, data) {
       var record = { savedAt: Date.now(), data: data };
