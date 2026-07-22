@@ -52,7 +52,11 @@ function proxy(req, res) {
     var options = { host: API_HOST, port: 443, path: req.url, method: req.method, headers: headers };
     var preq = https.request(options, function (pres) {
       res.writeHead(pres.statusCode, {
-        'Content-Type': pres.headers['content-type'] || 'application/json; charset=utf-8'
+        'Content-Type': pres.headers['content-type'] || 'application/json; charset=utf-8',
+        // nosniff también acá: si alguien pega /get/teams directo en el
+        // navegador (fuera de fetch()) y la API responde algo inesperado,
+        // que no se interprete como HTML ejecutable.
+        'X-Content-Type-Options': 'nosniff'
       });
       pres.pipe(res);
     });
@@ -69,12 +73,29 @@ function proxy(req, res) {
 }
 
 // Cabeceras de seguridad mínimas para todas las respuestas estáticas. No
-// sustituyen un WAF ni una CSP completa, pero son higiene básica de industria:
-// evitan el sniffing de MIME, el framing (clickjacking) y la fuga de referrer.
+// sustituyen un WAF, pero son higiene básica de industria: evitan el
+// sniffing de MIME, el framing (clickjacking), la fuga de referrer y, con la
+// CSP, dan una segunda capa contra XSS si algún día se cuela HTML/JS sin
+// escapar (defensa en profundidad — el escape en js/common.js → esc() sigue
+// siendo la primera línea). 'unsafe-inline' en style-src es necesario porque
+// las vistas arman `style="background:…"` inline (colores por equipo); no
+// hay scripts inline en ningún .html, así que script-src no lo necesita.
 var SECURITY_HEADERS = {
   'X-Content-Type-Options': 'nosniff',
   'X-Frame-Options': 'DENY',
-  'Referrer-Policy': 'no-referrer'
+  'Referrer-Policy': 'no-referrer',
+  'Content-Security-Policy': [
+    "default-src 'self'",
+    "script-src 'self'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' https: data:",
+    "font-src 'self'",
+    "connect-src 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'"
+  ].join('; ')
 };
 
 // Confina una ruta pedida a ROOT sin caer en el bug de "prefijo de string":
