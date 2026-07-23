@@ -1,7 +1,4 @@
-/* ============================================================================
- * tokens.css — Design tokens. --team-accent se repinta en runtime vía JS
- * (equipo favorito).
- * ==========================================================================*/
+/* tokens.css — Design tokens. --team-accent se repinta en runtime vía JS. */
 :root {
   /* --- Superficies e ink (modo claro; validados para contraste AA) -------- */
   --surface-page:   #f9f9f7;

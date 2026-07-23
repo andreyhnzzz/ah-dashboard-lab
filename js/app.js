@@ -6,6 +6,9 @@
 
   var C = App.config, K = App.common;
   var NAV = ['inicio','sedes','agenda','timeline','fanatico','matriz'];
+  // Etiqueta corta para la barra de pestañas móvil (nav__short) — el título
+  // completo (nav__label) no entra en 6 columnas de un teléfono.
+  var NAV_SHORT = { inicio:'Inicio', sedes:'Sedes', agenda:'Agenda', timeline:'Timeline', fanatico:'Fanático', matriz:'Matriz' };
 
   var state = {
     favoriteId: null,
@@ -15,13 +18,17 @@
   };
 
   /* ---------------------- Navegación / router ----------------------------- */
+  // aria-label lleva el título completo siempre, aunque en pantallas chicas
+  // solo se vea la etiqueta corta — el botón nunca queda mudo para lectores
+  // de pantalla ni sin texto visible en el teléfono.
   function buildNav(){
     var nav = K.$('nav');
     nav.innerHTML = NAV.map(function(id){
       var v = App.views[id];
-      return '<li><button class="nav__item" data-view="'+id+'" type="button">'+
+      return '<li><button class="nav__item" data-view="'+id+'" type="button" aria-label="'+K.esc(v.title)+'">'+
         '<span class="nav__icon">'+K.icon(v.icon)+'</span>'+
-        '<span class="nav__label">'+K.esc(v.title)+'</span></button></li>';
+        '<span class="nav__label">'+K.esc(v.title)+'</span>'+
+        '<span class="nav__short">'+K.esc(NAV_SHORT[id] || v.title)+'</span></button></li>';
     }).join('');
   }
 

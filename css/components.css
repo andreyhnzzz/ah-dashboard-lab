@@ -1,6 +1,4 @@
-/* ============================================================================
- * components.css — Componentes reutilizables (cards, tiles, banners, modal…)
- * ==========================================================================*/
+/* components.css — Componentes reutilizables (cards, tiles, banners, modal…) */
 
 .card { background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-1); padding: var(--sp-4); }
 .notice { color: var(--text-secondary); font-size: var(--fs-sm); margin: 0; }
@@ -72,9 +70,7 @@ select { font: inherit; font-size: var(--fs-sm); padding: 6px var(--sp-3); borde
 
 .pos-good { color: var(--good); } .pos-bad { color: var(--danger); }
 
-/* --- Fanático: cabecera "scoreboard" broadcast ---------------------------
- * Banda oscura con el bloque de color del equipo a la izquierda y la cápsula
- * del emblema + posición a la derecha, al estilo de las tarjetas de la marca. */
+/* --- Fanático: cabecera "scoreboard" broadcast --- */
 .fan-hero {
   position: relative; display: flex; align-items: stretch; gap: 0; overflow: hidden;
   background: var(--score-bg); border-radius: var(--radius-lg);
@@ -115,9 +111,7 @@ select { font: inherit; font-size: var(--fs-sm); padding: 6px var(--sp-3); borde
   .fan-hero__capsule { justify-content: center; }
 }
 
-/* --- Fanático: barras comparativas de estadísticas -----------------------
- * Referencia: panel de estadísticas de transmisión, con el valor de cada
- * equipo a los lados y barras que crecen desde el centro hacia afuera. */
+/* --- Fanático: barras comparativas (crecen desde el centro hacia afuera) --- */
 .statbars { display: flex; flex-direction: column; gap: var(--sp-3); }
 .statbars__head { display: flex; align-items: center; justify-content: center; gap: var(--sp-3); font-weight: 700; text-transform: uppercase; font-size: var(--fs-sm); margin-bottom: var(--sp-1); }
 .statbars__team { display: inline-flex; align-items: center; gap: 6px; }
@@ -156,19 +150,16 @@ select { font: inherit; font-size: var(--fs-sm); padding: 6px var(--sp-3); borde
 /* --- Lista de partidos (fanático) --- */
 .matches { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-3); }
 
-/* Scorecard: tarjeta "lower third" compartida por Sedes/Agenda/Timeline/
- * Fanático (App.common.scorecardBar, js/common.js). La barra emerge desde el
- * centro (clip-path) con un destello del amplify pattern; la cápsula cruza
- * copa → emblema oficial. */
+/* Scorecard: tarjeta compartida por Sedes/Agenda/Timeline/Fanático
+ * (App.common.scorecardBar, js/common.js). */
 .scorecard__bar {
   position: relative; display: flex; align-items: stretch; border-radius: 999px;
   overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.22);
   animation: scBarReveal 0.5s 0.1s cubic-bezier(.4,0,.2,1) both;
 }
-/* Destello del patrón amplify que estalla desde el centro al aparecer. Su
- * duración (var --marker-burst-dur, en css/tokens.css) está alargada +0,57 s
- * para apreciar mejor el patrón; es un overlay que se desvanece a opacity 0,
- * así alargarlo solo hace que el destello perdure, sin desfasar la tarjeta. */
+/* Destello del amplify pattern al aparecer. Su duración (--marker-burst-dur
+ * en tokens.css) va alargada aparte: es un overlay que se desvanece solo, así
+ * que estirarlo no desfasa la animación de la tarjeta. */
 .scorecard__bar::before {
   content: ""; position: absolute; inset: 0; z-index: 6; pointer-events: none;
   background: url("../assets/pattern-amplify.svg") center center / cover no-repeat;
@@ -182,18 +173,15 @@ select { font: inherit; font-size: var(--fs-sm); padding: 6px var(--sp-3); borde
 .scorecard__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; animation: scFadeIn 0.4s 0.42s both; }
 .scorecard__side.is-fav { box-shadow: inset 0 0 0 2px rgba(255,255,255,0.75); }
 .scorecard__side .flag-ico { border-radius: 3px; box-shadow: 0 0 0 1px rgba(255,255,255,0.25); flex-shrink: 0; }
-/* Cápsula central negra: el emblema oficial va EN MEDIO (reemplaza al "–") y
- * los dos scores lo flanquean, tal como el marcador oficial del Mundial. */
+/* Cápsula central: el emblema reemplaza al "–", flanqueado por los scores. */
 .scorecard__capsule {
   position: relative; flex-shrink: 0; z-index: 8; display: flex; align-items: center; gap: 10px;
   background: var(--score-bg); color: #fff; padding: 5px 16px;
   font-variant-numeric: tabular-nums;
   animation: scorecardPop 0.4s cubic-bezier(.34,1.56,.64,1) both;
 }
-/* Marcas superpuestas copa → emblema en el centro de la cápsula. El estado de
- * REPOSO es el emblema oficial (trophy oculto por defecto): así, corra o no la
- * animación de entrada, el centro del marcador siempre acaba en el emblema —
- * la copa solo se ve como origen durante la animación (keyframes con fill). */
+/* Copa → emblema superpuestos. El trofeo empieza oculto (opacity:0): con o
+ * sin animación, el reposo siempre es el emblema — la copa es solo el origen. */
 .scorecard__marks { position: relative; width: 26px; height: 30px; flex-shrink: 0; }
 .scorecard__mark { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 .scorecard__mark--trophy { opacity: 0; animation: scTrophy 0.95s ease both; }

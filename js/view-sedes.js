@@ -1,9 +1,4 @@
-/* ============================================================================
- * view-sedes.js — Apartado 2.1: Tour Virtual de Sedes
- * Técnica: scrollIntoView({behavior:'smooth'}) + estado activo entre elementos.
- * Resiliencia: si /get/games falla, las sedes siguen clicables; el detalle
- * muestra un mensaje local sin bloquear la navegación.
- * ==========================================================================*/
+// 2.1 Tour Virtual de Sedes: scrollIntoView + estado activo entre botones.
 (function (App) {
   'use strict';
   var C = App.common, S = C.store;

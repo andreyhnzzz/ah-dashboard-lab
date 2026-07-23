@@ -1,6 +1,4 @@
-/* ============================================================================
- * auth.css — Pantalla de acceso: login local + identidad de dispositivo.
- * ==========================================================================*/
+/* auth.css — Pantalla de acceso: login local + identidad de dispositivo. */
 
 body.auth-open { overflow: hidden; }
 

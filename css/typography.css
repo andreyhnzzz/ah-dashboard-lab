@@ -1,20 +1,6 @@
-/* ============================================================================
- * typography.css — Aplicación del sistema tipográfico de marca (cargado ÚLTIMO)
- * ----------------------------------------------------------------------------
- * Reglas tomadas de la guía oficial del Mundial 2026:
- *   1. "FWC26" (Event Typeface, condensado) SOLO para texto GRANDE: titulares,
- *      nombres/códigos de equipo, letras de grupo. La propia guía advierte que
- *      "es apto para texto grande, pero no para texto pequeño".
- *   2. Todo el texto pequeño de interfaz (botones, tags, etiquetas, nav) se
- *      queda en Noto Sans para no perder legibilidad.
- *   3. Los NÚMEROS (marcadores, posiciones, KPIs, estadísticas) van en
- *      "Noto Sans" en negrita — la guía marca los dígitos como Noto Sans Bold.
- *
- * Se carga al final del cascade a propósito: varios componentes usan la
- * abreviatura `font: inherit` (.btn, .group-tab, .venue…) que reinicia la
- * familia; declararlo aquí, más tarde y con igual especificidad, garantiza que
- * gane y ningún elemento caiga en la fuente equivocada.
- * ==========================================================================*/
+/* Tipografía de marca — cargado ÚLTIMO para ganarle en el cascade a
+ * componentes con `font: inherit` (.btn, .group-tab…). FWC26 (condensada)
+ * solo en texto grande: la guía oficial no la recomienda para texto chico. */
 
 /* --- 1) Display (FWC26 condensado) — solo texto grande de titular --------- */
 .sidebar__title, .topbar__title, .section-title, .hero-lg__title,

@@ -1,13 +1,7 @@
 (function(A){A.mock=A.mock||{};})(window.App=window.App||{});
-/* ============================================================================
- * mock-data.js — Dataset de ejemplo, mismo esquema que la API real. Solo se
- * usa con "Modo demo → Datos locales".
- *
- * `App.mock.respond(endpoint, forced)` devuelve un objeto tipo `Response`
- * (misma forma que `fetch`), para que api.js procese mock y API real por la
- * misma ruta de código. `forced` inyecta un status HTTP para reproducir
- * errores en vivo durante la defensa técnica.
- * ==========================================================================*/
+// Dataset de ejemplo (mismo esquema que la API real) para "Datos locales".
+// respond(endpoint, forced) imita un Response de fetch; forced fuerza un
+// status HTTP para simular errores en vivo.
 (function (App) {
   'use strict';
 

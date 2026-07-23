@@ -1,7 +1,4 @@
-/* ============================================================================
- * layout.css — Shell de la aplicación: sidebar + topbar + área de vistas
- * (Este proyecto sí permite media queries; se usan para el responsive del shell.)
- * ==========================================================================*/
+/* layout.css — Shell: sidebar + topbar + área de vistas. */
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body {
@@ -64,6 +61,7 @@ body {
 .nav__item:hover { background: var(--surface-2); color: var(--text-primary); }
 .nav__item.is-active { background: var(--team-tint); color: var(--text-primary); box-shadow: inset 3px 0 0 var(--team-accent); }
 .nav__icon { font-size: 1.1rem; width: 1.4rem; text-align: center; }
+.nav__short { display: none; } /* solo se muestra en la barra de pestañas móvil */
 
 /* --- Main --- */
 .main { display: flex; flex-direction: column; min-width: 0; }
@@ -100,9 +98,7 @@ body {
   background: url("../assets/pattern-amplify.svg") center center / cover no-repeat;
   transform: scale(0.35);
 }
-/* El emblema oficial (26 + trofeo) es el ORIGEN: el patrón —que ES la silueta
- * del 26 repetida— se expande DESDE el emblema hacia afuera al cambiar de vista.
- * Los colores siguen la forma del 26 y crecen; el logo no se deforma. */
+/* El emblema es el origen: el patrón (la silueta del 26) crece desde ahí. */
 .wc-wipe__mark {
   position: absolute; inset: 0; margin: auto; z-index: 2;
   width: 26vmin; height: 26vmin; object-fit: contain;
@@ -115,10 +111,8 @@ body {
 .wc-wipe.is-covering .wc-wipe__mark { animation: wcMarkIn var(--wipe-cover-dur) cubic-bezier(.34,1.3,.64,1) forwards; }
 .wc-wipe.is-revealing .wc-wipe__mark { animation: wcMarkOut var(--wipe-reveal-dur) cubic-bezier(.4,0,.2,1) forwards; }
 
-/* Promoción a capa de compositor SOLO mientras el wipe corre (las clases las
- * quita js/app.js al terminar), para no dejar una capa a pantalla completa
- * permanente. Evita el repintado por frame del SVG escalado y del drop-shadow
- * del emblema: se rasterizan una vez y el resto es transform/opacity en GPU. */
+/* will-change solo mientras el wipe corre (js/app.js quita las clases al
+ * terminar) — no dejar una capa de compositor a pantalla completa fija. */
 .wc-wipe.is-covering, .wc-wipe.is-revealing { will-change: clip-path; }
 .wc-wipe.is-covering .wc-wipe__bands, .wc-wipe.is-revealing .wc-wipe__bands { will-change: transform; }
 .wc-wipe.is-covering .wc-wipe__mark, .wc-wipe.is-revealing .wc-wipe__mark { will-change: transform, opacity; }
@@ -152,10 +146,8 @@ body {
 }
 .app-footer > p { margin: 0; }
 
-/* Botón de accesibilidad: flotante y fijo (siempre visible, en todas las
- * vistas) a diferencia de la antigua declaración enterrada en el footer.
- * Pulso sutil en reposo — mismo lenguaje que .wc-bar (nunca queda estático) —
- * y panel que entra con fade + translateY, igual que .view--entering. */
+/* Botón de accesibilidad flotante, fijo en todas las vistas. Pulso sutil en
+ * reposo — mismo lenguaje visual que .wc-bar (nunca queda estático). */
 .a11y-widget { position: fixed; right: var(--sp-5); bottom: var(--sp-5); z-index: 60; }
 .a11y-fab {
   width: 52px; height: 52px; border-radius: 50%; padding: 0;
@@ -255,10 +247,8 @@ body {
   transition: none !important;
   scroll-behavior: auto !important;
 }
-/* El wipe de transición se oculta por completo (js/app.js además lo omite),
- * y los marcadores del dashboard quedan en su estado final estático — igual
- * que en @media (prefers-reduced-motion): sin destello, copa oculta y emblema
- * visible. Así "pausar animaciones" también detiene la animación de marcadores. */
+/* Mismo resultado final que prefers-reduced-motion: wipe oculto, marcadores
+ * en su estado estático (sin destello, copa oculta, emblema visible). */
 .a11y-pause-motion .wc-wipe { display: none !important; }
 .a11y-pause-motion .scorecard__bar { clip-path: none !important; }
 .a11y-pause-motion .scorecard__bar::before { display: none !important; }
@@ -274,9 +264,6 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .a11y-fab { animation: none; }
   .a11y-panel { animation: none; }
-}
-@media (max-width: 560px) {
-  .a11y-widget { right: var(--sp-3); bottom: var(--sp-3); }
 }
 
 .section-title { font-size: var(--fs-md); font-weight: 800; letter-spacing: -0.01em; margin: 0 0 var(--sp-3); display: flex; align-items: center; gap: var(--sp-2); }
@@ -295,8 +282,28 @@ body {
   .nav__item.is-active { box-shadow: inset 0 -3px 0 var(--team-accent); }
   .nav__label { font-size: var(--fs-sm); }
 }
+/* Teléfono: el nav pasa a pestañas fijas abajo — ícono + etiqueta corta,
+ * nunca solo íconos mudos. Footer y botón a11y se corren para no taparse. */
 @media (max-width: 560px) {
-  .nav__label { display: none; } /* solo íconos en pantallas muy angostas */
   .topbar { padding: var(--sp-3) var(--sp-4); }
   .view { padding: var(--sp-4); }
+  .sidebar__slogan { display: none; }
+
+  .sidebar nav {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+    background: var(--surface-1); border-top: 1px solid var(--border);
+    box-shadow: var(--shadow-2); padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  .nav { flex-direction: row; flex-wrap: nowrap; gap: 0; }
+  .nav__item {
+    flex: 1 1 0; flex-direction: column; justify-content: center;
+    gap: 3px; padding: 7px 2px; border-radius: 0; text-align: center;
+  }
+  .nav__item.is-active { box-shadow: inset 0 3px 0 0 var(--team-accent); }
+  .nav__icon { font-size: 1.2rem; width: auto; }
+  .nav__label { display: none; }
+  .nav__short { display: block; font-size: 0.62rem; font-weight: 700; white-space: nowrap; }
+
+  .app-footer { padding-bottom: calc(60px + var(--sp-4)); }
+  .a11y-widget { right: var(--sp-3); bottom: calc(60px + var(--sp-3)); }
 }

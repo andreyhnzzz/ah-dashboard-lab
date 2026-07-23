@@ -1,7 +1,4 @@
-/* ============================================================================
- * fonts.css — Tipografías autoalojadas (.woff2, sin CDN). Licencias en
- * assets/fonts/.
- * ==========================================================================*/
+/* fonts.css — Tipografías autoalojadas (.woff2, sin CDN). Licencias en assets/fonts/. */
 
 /* font-weight: 100 900 evita que el navegador sintetice un "faux bold". */
 @font-face {

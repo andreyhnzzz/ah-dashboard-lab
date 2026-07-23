@@ -7,8 +7,7 @@
   <meta name="description" content="Dashboard integral del Mundial 2026: tour de sedes, agenda simultánea, timeline infinito, dashboard del fanático y matriz de enfrentamientos.">
   <link rel="icon" type="image/png" href="assets/favicon.png">
 
-  <!-- Precarga de los pesos de titular más usados para evitar el "flash" de
-       fuente del sistema antes de que cargue la tipografía de marca. -->
+  <!-- Precarga para evitar el "flash" de fuente del sistema antes de la marca. -->
   <link rel="preload" href="assets/fonts/fwc26-ultracondensed.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/noto-sans-400.woff2" as="font" type="font/woff2" crossorigin>
 
@@ -21,10 +20,7 @@
   <link rel="stylesheet" href="css/typography.css">
 </head>
 <body>
-  <!-- ===================== Sprite de íconos SVG (sin emojis) =====================
-       Set unificado, grid 24×24, trazo 1.75 con caps/joins redondeados que se
-       heredan de la raíz del sprite (propiedades SVG heredables) para garantizar
-       consistencia total entre íconos. Uso: <svg class="icon"><use href="#icon-x"/></svg>. -->
+  <!-- Sprite de íconos SVG (sin emojis). Uso: <svg class="icon"><use href="#icon-x"/></svg> -->
   <svg xmlns="http://www.w3.org/2000/svg" class="icon-sprite" aria-hidden="true" focusable="false"
        fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
     <defs>
@@ -115,13 +111,11 @@
 
   <a class="skip-link" href="#view">Saltar al contenido principal</a>
 
-  <!-- Overlay de transición: AMPLIFY PATTERN oficial (eco concéntrico del 26)
-       que se amplifica con zoom desde el centro al cambiar de vista
-       (ver app.js → playWipe y css/layout.css → .wc-wipe). -->
+  <!-- Overlay de transición entre vistas (app.js → playWipe, css → .wc-wipe). -->
   <div id="wc-wipe" class="wc-wipe" aria-hidden="true"><span class="wc-wipe__bands"></span><img class="wc-wipe__mark" src="assets/emblem.png" alt=""></div>
 
   <div class="shell">
-    <!-- ===================== Barra lateral de navegación ===================== -->
+    <!-- Barra lateral de navegación -->
     <aside class="sidebar" aria-label="Navegación principal">
       <div class="sidebar__brand">
         <span class="sidebar__logo"><img src="assets/emblem.png" alt="" width="42" height="42"></span>
@@ -144,7 +138,7 @@
       <p class="sidebar__foot">ISW-521 · Categoría B<br>Todos los apartados</p>
     </aside>
 
-    <!-- ===================== Área principal ===================== -->
+    <!-- Área principal -->
     <div class="main">
       <!-- Topbar sticky: título de vista + favorito global + estado + demo -->
       <header class="topbar">
@@ -226,10 +220,7 @@
     </div>
   </div>
 
-  <!-- ===================== Login / re-login (device identity + 401) =====================
-       Una sola pantalla para los tres momentos de la sesión: primer ingreso
-       ("new"), reingreso con identidad ya guardada ("returning") y expiración
-       de token real o simulada ("expired"). Ver js/view-login.js. -->
+  <!-- Login / re-login: una sola pantalla para new/returning/expired (js/view-login.js). -->
   <div id="auth-gate" class="auth-gate" hidden>
     <div class="auth-card" role="dialog" aria-modal="true" aria-labelledby="auth-title" aria-describedby="auth-desc">
       <div class="auth-card__mark" aria-hidden="true"><img src="assets/emblem.png" alt="" width="52" height="52"></div>
@@ -266,11 +257,7 @@
     </div>
   </div>
 
-  <!-- ===================== Botón de accesibilidad (siempre visible) =====================
-       Flotante y fijo en todas las vistas (a diferencia de la antigua declaración
-       enterrada en el footer, que quedaba fuera de pantalla con scroll). Abre un
-       panel con las cuatro secciones WCAG 2.1 AA (POUR) y el modo daltónico
-       (paleta segura para daltonismo, ver css/tokens.css → body.colorblind). -->
+  <!-- Botón de accesibilidad, flotante y fijo en todas las vistas. -->
   <div class="a11y-widget">
     <button type="button" id="a11y-fab" class="a11y-fab" aria-haspopup="dialog" aria-expanded="false" aria-controls="a11y-panel" title="Accesibilidad">
       <svg class="icon" aria-hidden="true"><use href="#icon-access"></use></svg>
@@ -334,7 +321,7 @@
     </div>
   </div>
 
-  <!-- ===================== Scripts (orden de dependencias) ===================== -->
+  <!-- Scripts (orden de dependencias) -->
   <script src="js/config.js"></script>
   <script src="js/mock-data.js"></script>
   <script src="js/storage.js"></script>

@@ -1,7 +1,4 @@
-/* ============================================================================
- * view-inicio.js — Resumen del torneo (landing)
- * Da contexto y accesos directos a cada apartado. Lee conteos del store.
- * ==========================================================================*/
+// Resumen del torneo: KPIs y accesos directos a cada apartado.
 (function (App) {
   'use strict';
   var C = App.common, S = C.store;

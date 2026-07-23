@@ -1,9 +1,4 @@
-/* ============================================================================
- * view-agenda.js — Apartado 2.2: Agenda Simultánea
- * Técnica: agrupación por clave (local_date) + layout dividido en columnas.
- * Resiliencia: si al cambiar de fecha no hay datos, se muestran esqueletos por
- * columna (nunca pantalla en blanco).
- * ==========================================================================*/
+// 2.2 Agenda Simultánea: agrupa por local_date, columnas paralelas por fecha.
 (function (App) {
   'use strict';
   var C = App.common, S = C.store;

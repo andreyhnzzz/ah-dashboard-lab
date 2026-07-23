@@ -1,10 +1,4 @@
-/* ============================================================================
- * view-matriz.js — Apartado 2.5: Matriz de Enfrentamientos por Grupo
- * Técnica: cuadrícula interactiva cruzando groups + teams + games.
- * Resiliencia: la matriz se dibuja SIEMPRE completa (todas las celdas
- * "Pendiente"); cuando llegan los partidos se actualizan SOLO las celdas
- * afectadas (refresh()), sin reconstruir la tabla desde cero.
- * ==========================================================================*/
+// 2.5 Matriz de Enfrentamientos: cuadrícula 4×4 cruzando groups+teams+games.
 (function (App) {
   'use strict';
   var C = App.common, S = C.store;

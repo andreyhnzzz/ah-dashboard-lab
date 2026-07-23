@@ -1,10 +1,4 @@
-/* ============================================================================
- * view-timeline.js — Apartado 2.3: Timeline Infinito
- * Técnica: IntersectionObserver sobre un centinela para insertar bloques de 10
- * partidos a medida que el usuario hace scroll (sin paginar la petición HTTP).
- * Resiliencia: si la carga falla, botón de reintento manual (dispara backoff);
- * al recuperarse, la inserción arranca desde cero sin duplicar.
- * ==========================================================================*/
+// 2.3 Timeline Infinito: IntersectionObserver inserta bloques de 10 al hacer scroll.
 (function (App) {
   'use strict';
   var C = App.common, S = C.store;
