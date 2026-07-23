@@ -39,39 +39,28 @@
     return '<div class="agenda-grid">'+out+'</div>';
   }
 
+  // Estado sin columnas navegables (cargando o sin fechas simultáneas): fija
+  // etiqueta + contenido y bloquea los controles. Nunca deja pantalla en blanco.
+  function setAgendaEmpty(el, labelText, gridHtml){
+    el.querySelector('#agenda-date').textContent = labelText;
+    el.querySelector('#agenda-pos').textContent = '';
+    el.querySelector('#agenda-grid').innerHTML = gridHtml;
+    el.querySelector('#agenda-prev').disabled = true;
+    el.querySelector('#agenda-next').disabled = true;
+  }
+
   function paint(el){
-    var grid = el.querySelector('#agenda-grid');
-    var label = el.querySelector('#agenda-date');
-    var pos = el.querySelector('#agenda-pos');
+    // Si /get/games no cargó, esqueletos (no "no hay fechas", que engañaría).
+    if(!S.ready.games){ setAgendaEmpty(el, 'Cargando agenda…', skeletonColumns(3)); return; }
+    if(!dates.length){ setAgendaEmpty(el, '—', '<p class="notice">No hay fechas con partidos simultáneos disponibles.</p>'); return; }
 
-    // Reto de resiliencia: si /get/games nunca cargó (ni hay caché), no hay
-    // manera de saber qué fechas son simultáneas. Mostrar esqueletos por
-    // columna en vez de "no hay fechas" (que induciría a pensar que el
-    // torneo no tiene partidos simultáneos, cuando en realidad es un fallo
-    // de red). Nunca pantalla en blanco.
-    if(!S.ready.games){
-      label.textContent = 'Cargando agenda…'; pos.textContent = '';
-      grid.innerHTML = skeletonColumns(3);
-      el.querySelector('#agenda-prev').disabled = true;
-      el.querySelector('#agenda-next').disabled = true;
-      return;
-    }
-
-    if(!dates.length){
-      grid.innerHTML = '<p class="notice">No hay fechas con partidos simultáneos disponibles.</p>';
-      label.textContent = '—'; pos.textContent='';
-      el.querySelector('#agenda-prev').disabled = true;
-      el.querySelector('#agenda-next').disabled = true;
-      return;
-    }
     if(idx<0){ idx=0; } if(idx>dates.length-1){ idx=dates.length-1; }
     var date = dates[idx];
-    label.textContent = C.fmtDateLong(date);
-    pos.textContent = '('+(idx+1)+' de '+dates.length+')';
+    el.querySelector('#agenda-date').textContent = C.fmtDateLong(date);
+    el.querySelector('#agenda-pos').textContent = '('+(idx+1)+' de '+dates.length+')';
 
     var games = S.gamesByDate[date].slice().sort(function(a,b){ return (a.stadium_id||0)-(b.stadium_id||0); });
-    grid.innerHTML = '<div class="agenda-grid">'+games.map(matchColumn).join('')+'</div>';
-
+    el.querySelector('#agenda-grid').innerHTML = '<div class="agenda-grid">'+games.map(matchColumn).join('')+'</div>';
     el.querySelector('#agenda-prev').disabled = (idx===0);
     el.querySelector('#agenda-next').disabled = (idx===dates.length-1);
   }

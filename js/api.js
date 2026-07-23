@@ -1,7 +1,5 @@
-/* ============================================================================
- * api.js — Capa de acceso a datos (fetch + JWT + resiliencia). Único lugar que
- * habla con la red. Ver docs/ARCHITECTURE.md para el detalle de diseño.
- * ==========================================================================*/
+// Todo lo que toca la red pasa por acá — el resto de la app ni sabe que
+// fetch existe. JWT, reintentos y backoff, todo en un solo lugar.
 (function (App) {
   'use strict';
 
@@ -17,7 +15,7 @@
   }
   HttpError.prototype = Object.create(Error.prototype);
 
-  // Hooks no-op para que esta capa nunca dependa de la UI.
+  // La red no sabe que hay una interfaz del otro lado — solo grita por acá.
   var hooks = {
     onRetry: function () {},
     onCountdownTick: function () {},
@@ -59,8 +57,8 @@
     return Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
   }
 
-  // Mismo backoff que getData() para /auth/*: el login no debe fallar al
-  // primer tropiezo transitorio de la API.
+  // El login también tiene derecho a reintentar — un tropiezo no debería
+  // dejar a nadie afuera de la fiesta.
   async function postWithRetry(url, payload) {
     var attempt = 0;
     while (true) {
@@ -144,16 +142,40 @@
     }
   }
 
+  // Plan B del modo offline: si hay algo guardado, lo servimos con la
+  // etiqueta de "viejo" en vez de dejar a la app con las manos vacías.
   function fallbackOrThrow(endpoint, error) {
     var cached = App.storage.getCached(endpoint);
     if (cached) { return { data: cached.data, stale: true, savedAt: cached.savedAt, error: error }; }
     throw error;
   }
 
-  // Devuelve SIEMPRE { data, stale, savedAt? } o lanza un error tipado.
+  // Traduce una respuesta HTTP ya recibida a una decisión:
+  //   { value }         → éxito, devolver esos datos
+  //   { retry, status } → 429/5xx, reintentar con backoff
+  //   { giveUp, status } → otro error, caer a caché o lanzar
+  // El 401 es especial: limpia token, avisa a la UI y lanza AuthError.
+  async function classifyResponse(endpoint, res) {
+    if (res.ok) {
+      var data = await res.json();
+      App.storage.cacheResponse(endpoint, data);
+      return { value: { data: data, stale: false } };
+    }
+    if (res.status === 401) {
+      // Token quemado: se limpia y se avisa. Nada de reload — eso es trampa.
+      App.storage.clearToken();
+      hooks.onRetryDone();
+      hooks.onAuthExpired();
+      throw new AuthError('Sesión expirada (401)');
+    }
+    if (res.status === 429 || res.status >= 500) { return { retry: true, status: res.status }; }
+    return { giveUp: true, status: res.status };
+  }
+
+  // El semáforo de todo el flujo: siempre { data, stale, savedAt? } o un
+  // error con nombre y apellido (401 → AuthError, resto → HttpError).
   async function getData(endpoint) {
     if (!App.storage.getToken()) { await authenticate(); }
-
     var attempt = 0;
     while (true) {
       attempt += 1;
@@ -161,34 +183,13 @@
       try {
         res = await transport(endpoint);
       } catch (networkError) {
-        if (App.storage.hasCache(endpoint)) { hooks.onRetryDone(); return fallbackOrThrow(endpoint, networkError); }
-        if (attempt < C.MAX_ATTEMPTS) { await backoffWait(attempt, 0); continue; }
-        hooks.onRetryDone();
-        return fallbackOrThrow(endpoint, networkError);
+        if (App.storage.hasCache(endpoint) || attempt >= C.MAX_ATTEMPTS) { hooks.onRetryDone(); return fallbackOrThrow(endpoint, networkError); }
+        await backoffWait(attempt, 0); continue;
       }
-
-      if (res.ok) {
-        var data = await res.json();
-        App.storage.cacheResponse(endpoint, data);
-        hooks.onRetryDone();
-        return { data: data, stale: false };
-      }
-
-      if (res.status === 401) {
-        App.storage.clearToken();
-        hooks.onRetryDone();
-        hooks.onAuthExpired();
-        throw new AuthError('Sesión expirada (401)');
-      }
-
-      if (res.status === 429 || res.status >= 500) {
-        if (attempt < C.MAX_ATTEMPTS) { await backoffWait(attempt, res.status); continue; }
-        hooks.onRetryDone();
-        return fallbackOrThrow(endpoint, new HttpError(res.status));
-      }
-
-      hooks.onRetryDone();
-      return fallbackOrThrow(endpoint, new HttpError(res.status));
+      var r = await classifyResponse(endpoint, res);
+      if (r.value) { hooks.onRetryDone(); return r.value; }
+      if (r.giveUp || attempt >= C.MAX_ATTEMPTS) { hooks.onRetryDone(); return fallbackOrThrow(endpoint, new HttpError(r.status)); }
+      await backoffWait(attempt, r.status); continue;
     }
   }
   App.api.getData = getData;

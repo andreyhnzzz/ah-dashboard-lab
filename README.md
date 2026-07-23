@@ -17,7 +17,7 @@
 
 ## Índice
 
-[Vistas](#vistas) · [Resiliencia](#resiliencia--sesión) · [Guía de login](docs/LOGIN.md) · [Arquitectura y decisiones de diseño](docs/ARCHITECTURE.md) · [Stack](#stack) · [Arquitectura](#arquitectura) · [Cómo ejecutarlo](#cómo-ejecutarlo)
+[Vistas](#vistas) · [Resiliencia](#resiliencia--sesión) · [Stack](#stack) · [Arquitectura](#arquitectura) · [Cómo ejecutarlo](#cómo-ejecutarlo)
 
 ## Vistas
 
@@ -33,8 +33,7 @@
 - **Backoff exponencial** ante `429`/`5xx`, con countdown visible.
 - **Caché offline**: última respuesta buena se sirve marcada como "no actualizada" si la red falla.
 - **401 → re-login** en la misma pantalla, sin perder la vista ni el equipo favorito.
-
-Guía completa del login (estados, claves de `localStorage`, cómo probar 401/429/500 y el error más común al abrir el proyecto): **[docs/LOGIN.md](docs/LOGIN.md)**.
+- **Seguridad**: salida escapada (`esc()` en [js/common.js](js/common.js)) + cabeceras en el proxy (CSP, `nosniff`, anti-clickjacking) como segunda capa anti-XSS.
 
 ## Stack
 
@@ -71,7 +70,7 @@ Abrir **`http://localhost:8099`**. El primer ingreso registra una identidad de d
 > (Node, cero dependencias) reenvía `/auth/*` y `/get/*` a la API **del lado
 > servidor**, donde no hay CORS — así el login funciona de verdad. Con
 > cualquier otro servidor estático la app igual arranca, pero cae a datos
-> locales de demostración. Detalle completo en [docs/LOGIN.md](docs/LOGIN.md).
+> locales de demostración.
 
 ---
 

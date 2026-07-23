@@ -49,51 +49,55 @@
     }
   }
 
+  // Estado de error: la petición falló y no hay nada que mostrar (reto 2.3).
+  var TL_EMPTY = '<div class="card empty-state">'+
+    '<div class="empty-state__icon">'+C.icon('signal')+'</div>'+
+    '<h3>No se pudo cargar el calendario</h3>'+
+    '<p class="notice">La petición de partidos falló. Reintentá para disparar el backoff exponencial.</p>'+
+    '<button class="btn btn--primary" id="tl-retry" type="button">Reintentar carga</button>'+
+  '</div>';
+
+  function tlShell(count){
+    return '<div class="card tl-head">'+
+      '<span class="section-title" style="margin:0">Calendario cronológico</span>'+
+      '<span class="muted" id="tl-counter" aria-live="polite">0 de '+count+' partidos</span>'+
+    '</div>'+
+    '<ul class="tl-list" id="tl-list"></ul>'+
+    '<div class="tl-sentinel" id="tl-sentinel"><span class="loader" aria-hidden="true"></span> Cargando más…</div>';
+  }
+
+  // Observa el centinela para insertar bloques al hacer scroll; si el navegador
+  // no trae IntersectionObserver, degrada a un botón "Cargar más".
+  function watchSentinel(listEl, sentinelEl, counterEl){
+    var load = function(){ appendBlock(listEl, sentinelEl, counterEl); };
+    if('IntersectionObserver' in window){
+      observer = new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){ if(entry.isIntersecting){ load(); } });
+      }, { root: null, rootMargin: '120px', threshold: 0 });
+      observer.observe(sentinelEl);
+    } else {
+      sentinelEl.innerHTML = '<button class="btn" id="tl-more" type="button">Cargar más</button>';
+      sentinelEl.querySelector('#tl-more').addEventListener('click', load);
+    }
+  }
+
   App.views = App.views || {};
   App.views.timeline = {
     title: 'Timeline Infinito', desc: 'Los 104 partidos, cargados de a 10 al hacer scroll.', icon: 'infinity',
     render: function (el) {
       disconnect(); inserted = 0;
-
       if(!S.ready.games || !S.games.length){
-        el.innerHTML = '<div class="card empty-state">'+
-          '<div class="empty-state__icon">'+C.icon('signal')+'</div>'+
-          '<h3>No se pudo cargar el calendario</h3>'+
-          '<p class="notice">La petición de partidos falló. Reintentá para disparar el backoff exponencial.</p>'+
-          '<button class="btn btn--primary" id="tl-retry" type="button">Reintentar carga</button>'+
-        '</div>';
+        el.innerHTML = TL_EMPTY;
         el.querySelector('#tl-retry').addEventListener('click', function(){ App.app.reload(); });
         return;
       }
-
       ordered = orderGames();
-      el.innerHTML =
-        '<div class="card tl-head">'+
-          '<span class="section-title" style="margin:0">Calendario cronológico</span>'+
-          '<span class="muted" id="tl-counter" aria-live="polite">0 de '+ordered.length+' partidos</span>'+
-        '</div>'+
-        '<ul class="tl-list" id="tl-list"></ul>'+
-        '<div class="tl-sentinel" id="tl-sentinel"><span class="loader" aria-hidden="true"></span> Cargando más…</div>';
-
+      el.innerHTML = tlShell(ordered.length);
       var listEl = el.querySelector('#tl-list');
       var sentinelEl = el.querySelector('#tl-sentinel');
       var counterEl = el.querySelector('#tl-counter');
-
-      // Primer bloque inmediato para que nunca haya lista vacía.
-      appendBlock(listEl, sentinelEl, counterEl);
-
-      if('IntersectionObserver' in window){
-        observer = new IntersectionObserver(function(entries){
-          entries.forEach(function(entry){
-            if(entry.isIntersecting){ appendBlock(listEl, sentinelEl, counterEl); }
-          });
-        }, { root: null, rootMargin: '120px', threshold: 0 });
-        observer.observe(sentinelEl);
-      } else {
-        // Degradación elegante: botón manual si no hay IntersectionObserver.
-        sentinelEl.innerHTML = '<button class="btn" id="tl-more" type="button">Cargar más</button>';
-        sentinelEl.querySelector('#tl-more').addEventListener('click', function(){ appendBlock(listEl, sentinelEl, counterEl); });
-      }
+      appendBlock(listEl, sentinelEl, counterEl); // primer bloque inmediato: nunca lista vacía
+      watchSentinel(listEl, sentinelEl, counterEl);
     },
     // El router llama a destroy() al salir: evita observers huérfanos.
     destroy: function(){ disconnect(); }

@@ -1,12 +1,10 @@
-/* ============================================================================
- * view-fanatico.js — Apartado 2.4: Dashboard del Fanático Incondicional.
- * Tematización dinámica por equipo + comparativa vs. líder del grupo.
- * ==========================================================================*/
+// 2.4 en carne propia: elegís tu equipo y el panel se repinta entero —
+// color, posición de grupo, comparativa contra el líder.
 (function (App) {
   'use strict';
   var C = App.common, S = C.store;
 
-  /* --- Cabecera broadcast: bandas de color del equipo + emblema + posición -- */
+  /* --- Cabecera tipo transmisión: color del equipo + emblema + posición --- */
   function heroHtml(team, row){
     var color = team.color || '#4a2a86';
     var pos = row ? row.position : '—';
@@ -32,49 +30,43 @@
     '</section>';
   }
 
-  // Barras comparativas favorito vs. rival del grupo (estilo panel de stats).
+  // Una fila de barras. Se escala por magnitud: un -4 en "Diferencia" pinta
+  // una barra tan larga como un +4; el signo se muestra aparte.
+  function statBarRow(s, favColor, rivalColor){
+    var la = Math.abs(s.l), ra = Math.abs(s.r), max = Math.max(la, ra, 1);
+    var lw = Math.round(la/max*100), rw = Math.round(ra/max*100);
+    var lead = s.l===s.r ? '' : (s.l>s.r ? ' is-lead-l' : ' is-lead-r');
+    var fmt = function(v){ return s.signed && v>0 ? '+'+v : String(v); };
+    return '<div class="statbar'+lead+'">'+
+      '<span class="statbar__val statbar__val--l">'+fmt(s.l)+'</span>'+
+      '<span class="statbar__track statbar__track--l">'+
+        '<span class="statbar__fill" style="width:'+lw+'%;background:'+favColor+'"></span></span>'+
+      '<span class="statbar__label">'+C.esc(s.label)+'</span>'+
+      '<span class="statbar__track statbar__track--r">'+
+        '<span class="statbar__fill" style="width:'+rw+'%;background:'+rivalColor+'"></span></span>'+
+      '<span class="statbar__val statbar__val--r">'+fmt(s.r)+'</span>'+
+    '</div>';
+  }
+
+  // Favorito contra el rival del grupo, en formato "panel de stats de ESPN".
   function statBars(favRow, favTeam, rivalRow, rivalTeam){
-    var favRec = C.teamRecord(favTeam.id);
-    var rivalRec = C.teamRecord(rivalTeam.id);
-    var favColor = favTeam.color || '#4a2a86';
-    var rivalColor = rivalTeam.color || '#c62368';
-
+    var favRec = C.teamRecord(favTeam.id), rivalRec = C.teamRecord(rivalTeam.id);
+    var favColor = favTeam.color || '#4a2a86', rivalColor = rivalTeam.color || '#c62368';
     var stats = [
-      { label: 'Puntos',          l: favRow.pts,      r: rivalRow.pts },
-      { label: 'Ganados',         l: favRec.w,        r: rivalRec.w },
-      { label: 'Goles a favor',   l: favRow.gf,       r: rivalRow.gf },
-      { label: 'Goles en contra', l: favRow.ga,       r: rivalRow.ga },
-      { label: 'Diferencia',      l: favRow.gd,       r: rivalRow.gd, signed: true }
+      { label: 'Puntos',          l: favRow.pts, r: rivalRow.pts },
+      { label: 'Ganados',         l: favRec.w,   r: rivalRec.w },
+      { label: 'Goles a favor',   l: favRow.gf,  r: rivalRow.gf },
+      { label: 'Goles en contra', l: favRow.ga,  r: rivalRow.ga },
+      { label: 'Diferencia',      l: favRow.gd,  r: rivalRow.gd, signed: true }
     ];
-
-    var rows = stats.map(function(s){
-      // Escala por el máximo del par (magnitudes; para "Diferencia" se usa el
-      // valor absoluto, de modo que un -4 pinte una barra tan larga como un +4).
-      var la = Math.abs(s.l), ra = Math.abs(s.r), max = Math.max(la, ra, 1);
-      var lw = Math.round(la/max*100), rw = Math.round(ra/max*100);
-      var lead = s.l===s.r ? '' : (s.l>s.r ? ' is-lead-l' : ' is-lead-r');
-      var fmt = function(v){ return s.signed && v>0 ? '+'+v : String(v); };
-      return '<div class="statbar'+lead+'">'+
-        '<span class="statbar__val statbar__val--l">'+fmt(s.l)+'</span>'+
-        '<span class="statbar__track statbar__track--l">'+
-          '<span class="statbar__fill" style="width:'+lw+'%;background:'+favColor+'"></span></span>'+
-        '<span class="statbar__label">'+C.esc(s.label)+'</span>'+
-        '<span class="statbar__track statbar__track--r">'+
-          '<span class="statbar__fill" style="width:'+rw+'%;background:'+rivalColor+'"></span></span>'+
-        '<span class="statbar__val statbar__val--r">'+fmt(s.r)+'</span>'+
-      '</div>';
-    }).join('');
-
+    var rows = stats.map(function(s){ return statBarRow(s, favColor, rivalColor); }).join('');
     return '<section class="card fade-in">'+
       '<h3 class="section-title" style="--g:'+C.groupColor(favTeam.group)+'">Comparativa de grupo</h3>'+
-      '<div class="statbars">'+
-        '<div class="statbars__head">'+
-          '<span class="statbars__team" style="color:'+favColor+'">'+C.teamFlagHtml(favTeam.id)+' '+C.esc(favTeam.code||favTeam.name)+'</span>'+
-          '<span class="statbars__vs">vs</span>'+
-          '<span class="statbars__team" style="color:'+rivalColor+'">'+C.esc(rivalTeam.code||rivalTeam.name)+' '+C.teamFlagHtml(rivalTeam.id)+'</span>'+
-        '</div>'+
-        rows+
-      '</div>'+
+      '<div class="statbars"><div class="statbars__head">'+
+        '<span class="statbars__team" style="color:'+favColor+'">'+C.teamFlagHtml(favTeam.id)+' '+C.esc(favTeam.code||favTeam.name)+'</span>'+
+        '<span class="statbars__vs">vs</span>'+
+        '<span class="statbars__team" style="color:'+rivalColor+'">'+C.esc(rivalTeam.code||rivalTeam.name)+' '+C.teamFlagHtml(rivalTeam.id)+'</span>'+
+      '</div>'+rows+'</div>'+
       '<p class="statbars__foot muted">Comparado con '+C.esc(rivalTeam.name)+', '+
         (rivalRow.position===1 ? 'líder del grupo' : (rivalRow.position+'° del grupo'))+'.</p>'+
     '</section>';
@@ -114,55 +106,43 @@
     return '<ul class="matches">'+items+'</ul>';
   }
 
+  // Favorito guardado pero equipos aún sin llegar: esqueleto, no el mensaje de
+  // "elegí un equipo" (sería mentira — el favorito sí existe, falta el dato).
+  var FAN_SKELETON = '<div class="skeleton skeleton--tile" style="height:120px"></div>'+
+    '<div class="skeleton skeleton--tile" style="height:220px"></div>';
+  var FAN_EMPTY = '<div class="card empty-state">'+
+    '<div class="empty-state__icon">'+C.icon('star')+'</div>'+
+    '<h3>Elegí tu selección favorita</h3>'+
+    '<p class="notice">Usá el selector <strong>«Equipo favorito»</strong> en la barra superior. '+
+    'El panel se personaliza y el color de acento cambia según el equipo.</p></div>';
+
+  // Panel completo del equipo favorito: hero + comparativa + tabla + partidos.
+  function fanaticoMain(team, favId){
+    var list = S.groupByLetter[team.group] || [];
+    var row = null; for(var i=0;i<list.length;i++){ if(list[i].team_id===favId){ row=list[i]; break; } }
+    // El rival es el líder del grupo; si el favorito es líder, el segundo.
+    var rivalRow = (row && list.length>1) ? (row.position===1 ? list[1] : list[0]) : null;
+    var rivalTeam = rivalRow ? S.teamById[rivalRow.team_id] : null;
+    var comparison = (row && rivalRow && rivalTeam)
+      ? statBars(row, team, rivalRow, rivalTeam)
+      : '<section class="card"><h3 class="section-title">Comparativa de grupo</h3>'+
+        '<p class="notice">Sin datos de grupo suficientes para la comparativa.</p></section>';
+    return heroHtml(team, row) + comparison +
+      '<div class="split">'+
+        '<section class="card fade-in"><h3 class="section-title" style="--g:'+C.groupColor(team.group)+'">Grupo '+C.esc(team.group)+'</h3>'+standings(list, favId)+'</section>'+
+        '<section class="card fade-in"><h3 class="section-title">Partidos de '+C.esc(team.name)+'</h3>'+matches(S.matchesByTeam[favId]||[], team)+'</section>'+
+      '</div>';
+  }
+
   App.views = App.views || {};
   App.views.fanatico = {
     title: 'Dashboard del Fanático', desc: 'Elegí tu selección en la barra superior para personalizar el panel.', icon: 'star',
     render: function (el) {
       var favId = App.app.getFavorite();
-
-      // Hay favorito guardado (sobrevive a un refresco completo) pero el store
-      // todavía no cargó equipos: mostrar esqueleto, NO el estado "sin favorito"
-      // (que sería engañoso — el favorito sí existe, solo falta el dato).
-      if(favId && !S.ready.teams){
-        el.innerHTML = '<div class="skeleton skeleton--tile" style="height:120px"></div>'+
-          '<div class="skeleton skeleton--tile" style="height:220px"></div>';
-        return;
-      }
-
+      if(favId && !S.ready.teams){ el.innerHTML = FAN_SKELETON; return; }
       var team = favId ? S.teamById[favId] : null;
-      if(!team){
-        el.innerHTML = '<div class="card empty-state">'+
-          '<div class="empty-state__icon">'+C.icon('star')+'</div>'+
-          '<h3>Elegí tu selección favorita</h3>'+
-          '<p class="notice">Usá el selector <strong>«Equipo favorito»</strong> en la barra superior. '+
-          'El panel se personaliza y el color de acento cambia según el equipo.</p></div>';
-        return;
-      }
-
-      var list = S.groupByLetter[team.group] || [];
-      var row = null; for(var i=0;i<list.length;i++){ if(list[i].team_id===favId){ row=list[i]; break; } }
-
-      // Rival de la comparativa: el líder del grupo; si el favorito ES el
-      // líder, se compara contra el segundo.
-      var rivalRow = null, rivalTeam = null;
-      if(row && list.length>1){
-        rivalRow = (row.position===1) ? list[1] : list[0];
-        rivalTeam = S.teamById[rivalRow.team_id];
-      }
-
-      var teamMatches = S.matchesByTeam[favId] || [];
-      var comparison = (row && rivalRow && rivalTeam)
-        ? statBars(row, team, rivalRow, rivalTeam)
-        : '<section class="card"><h3 class="section-title">Comparativa de grupo</h3>'+
-          '<p class="notice">Sin datos de grupo suficientes para la comparativa.</p></section>';
-
-      el.innerHTML =
-        heroHtml(team, row) +
-        comparison +
-        '<div class="split">'+
-          '<section class="card fade-in"><h3 class="section-title" style="--g:'+C.groupColor(team.group)+'">Grupo '+C.esc(team.group)+'</h3>'+standings(list, favId)+'</section>'+
-          '<section class="card fade-in"><h3 class="section-title">Partidos de '+C.esc(team.name)+'</h3>'+matches(teamMatches, team)+'</section>'+
-        '</div>';
+      if(!team){ el.innerHTML = FAN_EMPTY; return; }
+      el.innerHTML = fanaticoMain(team, favId);
     }
   };
 })(window.App = window.App || {});

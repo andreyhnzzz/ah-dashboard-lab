@@ -1,6 +1,5 @@
-/* ============================================================================
- * config.js — Configuración central (ver docs/ARCHITECTURE.md para el detalle)
- * ==========================================================================*/
+// El panel de control de toda la app: un solo lugar para tocar y todo se
+// entera (endpoints, backoff, claves de localStorage).
 (function (App) {
   'use strict';
 
@@ -44,7 +43,8 @@
       cachePrefix: 'wc26.cache.'
     },
 
-    // Simulación de errores para la defensa técnica (solo con "Datos locales").
+    // El botón de pánico controlado: fuerza un 401/429/500 a pedido, para
+    // demostrar en vivo que la resiliencia realmente hace algo.
     SIMULATE: '',
     SIMULATE_TARGET: 'games'
   };

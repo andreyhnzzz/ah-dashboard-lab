@@ -1,6 +1,6 @@
 /* ============================================================================
  * tokens.css — Design tokens. --team-accent se repinta en runtime vía JS
- * (equipo favorito). Ver docs/ARCHITECTURE.md para el detalle de la paleta.
+ * (equipo favorito).
  * ==========================================================================*/
 :root {
   /* --- Superficies e ink (modo claro; validados para contraste AA) -------- */

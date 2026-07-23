@@ -43,41 +43,43 @@
       body+'</div>';
   }
 
+  var SEDES_EMPTY = '<div class="card"><p class="notice">No se pudo cargar la lista de sedes. Probá "Recargar datos".</p></div>';
+  function sedesShell(){
+    return '<div class="sedes-layout">'+
+      '<section class="venue-list" aria-label="Sedes del Mundial">'+S.stadiums.map(stadiumButton).join('')+'</section>'+
+      '<section id="venue-detail" class="venue-detail" tabindex="-1" aria-live="polite">'+
+        '<div class="card placeholder"><p class="notice">Seleccioná una sede de la izquierda para ver sus partidos aquí.</p></div>'+
+      '</section></div>';
+  }
+
+  // Marca la sede activa (aria-pressed), pinta su detalle sin trabajo redundante
+  // y hace el scroll suave — la técnica central del apartado 2.1.
+  function selectStadium(btn, buttons, detail){
+    var id = btn.getAttribute('data-stadium'); // stadiumById está indexado por string
+    buttons.forEach(function(b){ b.classList.remove('is-active'); b.setAttribute('aria-pressed','false'); });
+    btn.classList.add('is-active'); btn.setAttribute('aria-pressed','true');
+    if(activeId !== id){ activeId = id; renderDetail(detail, id); }
+    detail.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    detail.focus({ preventScroll: true });
+  }
+
+  // Restaura la sede marcada al volver a la vista.
+  function restoreSelection(el, detail){
+    if(activeId==null){ return; }
+    var prev = el.querySelector('.venue[data-stadium="'+activeId+'"]');
+    if(prev){ prev.classList.add('is-active'); prev.setAttribute('aria-pressed','true'); renderDetail(detail, activeId); }
+  }
+
   App.views = App.views || {};
   App.views.sedes = {
     title: 'Tour Virtual de Sedes', desc: 'Elegí una sede para saltar a sus partidos.', icon: 'stadium',
     render: function (el) {
-      if(!S.stadiums.length){ el.innerHTML='<div class="card"><p class="notice">No se pudo cargar la lista de sedes. Probá "Recargar datos".</p></div>'; return; }
-      el.innerHTML =
-        '<div class="sedes-layout">'+
-          '<section class="venue-list" aria-label="Sedes del Mundial">'+
-            S.stadiums.map(stadiumButton).join('')+
-          '</section>'+
-          '<section id="venue-detail" class="venue-detail" tabindex="-1" aria-live="polite">'+
-            '<div class="card placeholder"><p class="notice">Seleccioná una sede de la izquierda para ver sus partidos aquí.</p></div>'+
-          '</section>'+
-        '</div>';
-
+      if(!S.stadiums.length){ el.innerHTML = SEDES_EMPTY; return; }
+      el.innerHTML = sedesShell();
       var detail = el.querySelector('#venue-detail');
       var buttons = el.querySelectorAll('.venue');
-      buttons.forEach(function(btn){
-        btn.addEventListener('click', function(){
-          var id = btn.getAttribute('data-stadium'); // stadiumById está indexado por string
-          // Estado activo (accesible con aria-pressed).
-          buttons.forEach(function(b){ b.classList.remove('is-active'); b.setAttribute('aria-pressed','false'); });
-          btn.classList.add('is-active'); btn.setAttribute('aria-pressed','true');
-          // Evita trabajo redundante ante clics repetidos sobre la misma sede.
-          if(activeId !== id){ activeId = id; renderDetail(detail, id); }
-          // Navegación interna del DOM: scroll suave hacia el detalle.
-          detail.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          detail.focus({ preventScroll: true });
-        });
-      });
-      // Restaura la selección previa si se vuelve a la vista.
-      if(activeId!=null){
-        var prev = el.querySelector('.venue[data-stadium="'+activeId+'"]');
-        if(prev){ prev.classList.add('is-active'); prev.setAttribute('aria-pressed','true'); renderDetail(detail, activeId); }
-      }
+      buttons.forEach(function(btn){ btn.addEventListener('click', function(){ selectStadium(btn, buttons, detail); }); });
+      restoreSelection(el, detail);
     }
   };
 })(window.App = window.App || {});

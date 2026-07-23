@@ -1,8 +1,5 @@
-/* ============================================================================
- * server.js — `npm start`: sirve estáticos + proxy /auth/* y /get/* a la API
- * real (evita el bloqueo CORS del proveedor). Sin dependencias — ver
- * docs/ARCHITECTURE.md y docs/LOGIN.md para el porqué.
- * ==========================================================================*/
+// El puente sin CORS: el navegador no habla directo con worldcup26.ir,
+// así que este server hace de intermediario. Cero dependencias externas.
 'use strict';
 
 var http = require('http');
@@ -37,49 +34,53 @@ var MIME = {
   '.map': 'application/json; charset=utf-8'
 };
 
-// Reenvía la petición a https://worldcup26.ir<misma ruta>. No se manda
-// Origin, así la API ni siquiera evalúa CORS (ver docs/ARCHITECTURE.md).
+// Copia los headers relevantes del cliente hacia la API (sin Origin, para que
+// la API ni evalúe CORS). Content-Length solo si hay cuerpo.
+function upstreamHeaders(req, body) {
+  var headers = { 'Accept': 'application/json', 'Accept-Encoding': 'identity' };
+  if (req.headers['content-type']) { headers['Content-Type'] = req.headers['content-type']; }
+  if (req.headers['authorization']) { headers['Authorization'] = req.headers['authorization']; }
+  if (body.length) { headers['Content-Length'] = body.length; }
+  return headers;
+}
+
+// 502 = la API real no contestó. El front lo trata como un 500 más: dispara
+// el mismo backoff que cualquier otro tropiezo de servidor.
+function badGateway(res, req, err) {
+  console.error('[proxy] error hacia ' + API_HOST + req.url + ':', err.message);
+  res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
+  res.end(JSON.stringify({ error: 'bad_gateway', message: 'No se pudo contactar la API oficial: ' + err.message }));
+}
+
+// Reenvía tal cual a https://worldcup26.ir. Sin Origin, la API ni se
+// entera de que existe un CORS que evaluar.
 function proxy(req, res) {
   var chunks = [];
   req.on('data', function (c) { chunks.push(c); });
   req.on('end', function () {
     var body = Buffer.concat(chunks);
-    var headers = { 'Accept': 'application/json', 'Accept-Encoding': 'identity' };
-    if (req.headers['content-type']) { headers['Content-Type'] = req.headers['content-type']; }
-    if (req.headers['authorization']) { headers['Authorization'] = req.headers['authorization']; }
-    if (body.length) { headers['Content-Length'] = body.length; }
-
-    var options = { host: API_HOST, port: 443, path: req.url, method: req.method, headers: headers };
+    var options = { host: API_HOST, port: 443, path: req.url, method: req.method, headers: upstreamHeaders(req, body) };
     var preq = https.request(options, function (pres) {
       res.writeHead(pres.statusCode, {
         'Content-Type': pres.headers['content-type'] || 'application/json; charset=utf-8',
-        // nosniff también acá: si alguien pega /get/teams directo en el
-        // navegador (fuera de fetch()) y la API responde algo inesperado,
-        // que no se interprete como HTML ejecutable.
+        // Aunque alguien pegue /get/teams en la barra de direcciones, esto
+        // frena que el navegador lo interprete como HTML ejecutable.
         'X-Content-Type-Options': 'nosniff'
       });
       pres.pipe(res);
     });
-    preq.on('error', function (err) {
-      // 502: el cliente lo trata como error de servidor (reintenta con
-      // backoff y, si persiste, cae a datos locales — ver js/view-login.js).
-      console.error('[proxy] error hacia ' + API_HOST + req.url + ':', err.message);
-      res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ error: 'bad_gateway', message: 'No se pudo contactar la API oficial: ' + err.message }));
-    });
+    preq.on('error', function (err) { badGateway(res, req, err); });
     if (body.length) { preq.write(body); }
     preq.end();
   });
 }
 
-// Cabeceras de seguridad mínimas para todas las respuestas estáticas. No
-// sustituyen un WAF, pero son higiene básica de industria: evitan el
-// sniffing de MIME, el framing (clickjacking), la fuga de referrer y, con la
-// CSP, dan una segunda capa contra XSS si algún día se cuela HTML/JS sin
-// escapar (defensa en profundidad — el escape en js/common.js → esc() sigue
-// siendo la primera línea). 'unsafe-inline' en style-src es necesario porque
-// las vistas arman `style="background:…"` inline (colores por equipo); no
-// hay scripts inline en ningún .html, así que script-src no lo necesita.
+// Casco y cinturón para toda respuesta estática: nosniff, anti-clickjacking,
+// sin fuga de referrer, y una CSP que solo confía en 'self'. Es la segunda
+// capa contra XSS — la primera es esc() en js/common.js, que escapa antes
+// de que nada llegue al DOM. El único permiso que se cede es 'unsafe-inline'
+// en estilos (los colores de equipo se pintan inline); script-src se queda
+// cerrado a cal y canto porque no hay ni un <script> suelto en el HTML.
 var SECURITY_HEADERS = {
   'X-Content-Type-Options': 'nosniff',
   'X-Frame-Options': 'DENY',
@@ -98,10 +99,8 @@ var SECURITY_HEADERS = {
   ].join('; ')
 };
 
-// Confina una ruta pedida a ROOT sin caer en el bug de "prefijo de string":
-// comparar con `indexOf(ROOT)===0` deja pasar directorios hermanos cuyo nombre
-// empieza igual (ROOT="/app" admitiría "/app-secreto"). Se exige que sea ROOT
-// exacto o que continúe con el separador de ruta del SO.
+// El truco viejo de "/app-secreto" coleándose por empezar igual que "/app":
+// por eso se exige el separador de ruta exacto, no solo el prefijo.
 function resolveWithinRoot(urlPath) {
   var filePath = path.normalize(path.join(ROOT, urlPath));
   if (filePath !== ROOT && filePath.indexOf(ROOT + path.sep) !== 0) { return null; }
@@ -127,11 +126,8 @@ function serveStatic(req, res) {
     var ext = path.extname(filePath).toLowerCase();
     res.writeHead(200, Object.assign({
       'Content-Type': MIME[ext] || 'application/octet-stream',
-      // no-store (no solo no-cache): sin ETag/Last-Modified el navegador no
-      // tiene con qué revalidar, así que "no-cache" igual puede servir una
-      // copia vieja. En desarrollo esto se nota fuerte: si abriste la app
-      // antes de que existiera el login/logout, el navegador puede quedarse
-      // sirviendo ese JS viejo indefinidamente en visitas futuras.
+      // no-store a propósito: sin esto el navegador podría servir para
+      // siempre un JS viejo (de antes de que existiera el login, por ej.).
       'Cache-Control': 'no-store, no-cache, must-revalidate'
     }, SECURITY_HEADERS));
     fs.createReadStream(filePath).pipe(res);

@@ -1,11 +1,6 @@
-/* ============================================================================
- * color.js — Color y tematización. Módulo cohesivo y sin estado de dominio:
- * matemática de color (RGB/HSL, luminancia, contraste WCAG) + aplicación del
- * acento del equipo a las CSS custom properties de :root. No conoce el store
- * ni la API; se extrajo de common.js para respetar responsabilidad única.
- * Debe cargarse ANTES que common.js (que delega en App.color). Ver
- * docs/ARCHITECTURE.md → "Diseño visual".
- * ==========================================================================*/
+// El pincel del dashboard: matemática de color + pintar el acento del
+// equipo en las variables CSS de :root. No sabe nada de equipos ni de la
+// API — solo de colores. Se carga ANTES que common.js.
 (function (App) {
   'use strict';
 
@@ -20,7 +15,7 @@
     });
     return 0.2126*a[0] + 0.7152*a[1] + 0.0722*a[2];
   }
-  // Texto legible (negro/blanco) sobre un fondo dado, según luminancia relativa.
+  // ¿Texto negro o blanco encima de este color? La luminancia decide.
   function contrastText(hex) { return relLum(hexToRgb(hex)) > 0.42 ? '#0b0b0b' : '#ffffff'; }
 
   function rgbToHsl(rgb) {
@@ -37,8 +32,8 @@
     function t2(v){return ('0'+Math.round((v+m)*255).toString(16)).slice(-2);}
     return '#'+t2(r)+t2(g)+t2(b);
   }
-  // Ajusta un color de marca para que funcione como acento legible según el
-  // esquema claro/oscuro (evita acentos demasiado apagados u oscuros).
+  // Le sube el volumen a un color apagado para que funcione como acento,
+  // ajustado según si el sistema está en modo claro u oscuro.
   function adjustAccent(hex, isDarkMode){
     var hsl=rgbToHsl(hexToRgb(hex));
     if(hsl.s<0.12){hsl.s=0.12;}
@@ -48,9 +43,8 @@
   function rgba(hex, a){ var c=hexToRgb(hex); return 'rgba('+c.r+','+c.g+','+c.b+','+a+')'; }
   function isDark(){ return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches; }
 
-  // La API real no incluye un color de marca por equipo. Se deriva uno ESTABLE
-  // a partir del código FIFA (mismo equipo → mismo color siempre), con buena
-  // saturación para que funcione como acento tematizable.
+  // La API no manda color de equipo — se lo inventamos con un hash del
+  // código FIFA. Mismo equipo, mismo color, siempre (no es al azar).
   function colorFromString(s){
     var str = String(s || '?'), hash = 0;
     for (var i = 0; i < str.length; i++) { hash = (hash * 31 + str.charCodeAt(i)) | 0; }
@@ -58,8 +52,8 @@
     return hslToHex({ h: hue, s: 0.55, l: 0.42 });
   }
 
-  // Estado mínimo y encapsulado: el último color aplicado, para poder repintar
-  // el tema cuando cambia el esquema claro/oscuro del sistema (watchScheme).
+  // El único estado de este módulo: el último color puesto, para poder
+  // repintar si el sistema cambia de claro a oscuro (o viceversa).
   var currentColor = '#1c5cab';
   function applyTeamTheme(hex){
     currentColor = hex || '#1c5cab';
@@ -70,7 +64,7 @@
     root.setProperty('--team-tint', rgba(accent, 0.10));
     root.setProperty('--team-tint-strong', rgba(accent, 0.18));
   }
-  // Reaplica el tema al cambiar el esquema claro/oscuro del sistema.
+  // El sistema cambia de claro a oscuro y el tema se repinta solo, sin pedir permiso.
   function watchScheme(){
     if(!window.matchMedia){return;}
     var mq=window.matchMedia('(prefers-color-scheme: dark)');

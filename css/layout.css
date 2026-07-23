@@ -230,7 +230,7 @@ body {
 
 /* Fuente de lectura fácil: tipografía simple sin serifas ambiguas + espaciado
  * generoso entre letras/palabras/líneas (recomendado para dislexia). Pisa
- * font: inherit de .btn/.group-tab/etc. (ver docs/ARCHITECTURE.md) a propósito. */
+ * font: inherit de .btn/.group-tab/etc. a propósito. */
 .a11y-dyslexia, .a11y-dyslexia * {
   font-family: Verdana, Tahoma, "Trebuchet MS", Arial, sans-serif !important;
   letter-spacing: 0.03em !important;

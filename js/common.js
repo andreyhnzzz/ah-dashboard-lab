@@ -1,19 +1,19 @@
-/* ============================================================================
- * common.js — Adaptador de datos + utilidades compartidas + store en memoria.
- * Único punto que conoce la forma real de la API — ver docs/ARCHITECTURE.md.
- * ==========================================================================*/
+// El traductor: convierte lo que manda la API real en algo que el resto de
+// la app entiende, más el store en memoria y utilidades compartidas.
 (function (App) {
   'use strict';
 
   function $(id) { return document.getElementById(id); }
 
-  // Ícono SVG del sprite embebido en index.html (ver <svg class="icon-sprite">).
-  // Reemplaza los emojis: mismo tratamiento tipográfico en toda la app,
-  // hereda color vía currentColor y escala con font-size.
+  // Ícono del sprite embebido en index.html — reemplaza a los emojis con
+  // algo que hereda color y escala con el texto.
   function icon(name, extraCls) {
     return '<svg class="icon' + (extraCls ? ' ' + extraCls : '') + '" aria-hidden="true" focusable="false"><use href="#icon-' + name + '"></use></svg>';
   }
 
+  // La primera línea de defensa contra XSS: nada de la API llega al DOM sin
+  // pasar por acá primero. Si preguntan "¿y si un nombre trae <script>?",
+  // la respuesta vive en esta función.
   function esc(v) {
     return String(v == null ? '' : v)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -21,24 +21,18 @@
   }
 
   /* ---------------------- Color: contraste y tema ------------------------- */
-  // La matemática de color y la tematización viven en js/color.js (módulo de
-  // responsabilidad única, cargado antes que este). Aquí solo se toman las
-  // funciones que common.js usa internamente y que reexpone a las vistas.
+  // La matemática de color vive en js/color.js — acá solo se toma prestado.
   var contrastText = App.color.contrastText;
   var colorFromString = App.color.colorFromString;
 
-  // Color fijo por grupo (A–L), ver css/tokens.css (--grp-a…--grp-l). Se usa en
-  // la Matriz de Enfrentamientos y en las tarjetas de resultado "scoreboard"
-  // para que cada grupo tenga una identidad visual propia, como en las
-  // referencias de diseño (tarjetas de grupo con marco de color).
+  // Un color fijo por grupo (A–L) para que cada uno tenga su propia
+  // identidad visual en la Matriz y en las tarjetas de partido.
   function groupColor(letter) {
     var l = String(letter || 'a').toLowerCase();
     return 'var(--grp-' + (/^[a-l]$/.test(l) ? l : 'a') + ')';
   }
 
-  /* ---------------------- Fecha legible ------------------------------------
-   * El store guarda las fechas ya normalizadas a 'YYYY-MM-DD' (ver adaptGame).
-   * --------------------------------------------------------------------- */
+  /* ---------------------- Fecha legible ----------------------------------- */
   var MONTHS = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
   var WEEKDAYS = ['dom','lun','mar','mié','jue','vie','sáb'];
   function fmtDate(iso){
@@ -51,8 +45,8 @@
     return WEEKDAYS[d.getUTCDay()]+' '+parseInt(p[2],10)+' '+MONTHS[+p[1]-1]+' '+p[0];
   }
 
-  // Adaptador API real → forma interna (esquema completo en docs/ARCHITECTURE.md).
-  // Admite array plano o envuelto ({teams:[...]} / {data:[...]}).
+  // La API a veces manda un array pelado, a veces uno envuelto en {teams:[...]}
+  // — esto los aplana a todos por igual.
   function unwrapArray(raw, keys){
     if (Array.isArray(raw)) { return raw; }
     if (raw && typeof raw === 'object') {
@@ -91,12 +85,13 @@
     };
   }
 
-  // 'MM/DD/YYYY HH:mm' (formato real) → 'YYYY-MM-DD' (para agrupar/ordenar).
+  // La API manda 'MM/DD/YYYY HH:mm'; esto lo pasa a 'YYYY-MM-DD' para poder
+  // agrupar y ordenar sin dolores de cabeza.
   function normalizeDate(raw){
     var s = String(raw || '').trim();
     var m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
     if (m) { return m[3] + '-' + ('0'+m[1]).slice(-2) + '-' + ('0'+m[2]).slice(-2); }
-    // Ya viene en ISO (p. ej. datos de ejemplo antiguos) o formato desconocido.
+    // Por si ya viene en ISO de algún dataset viejo.
     var iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
     return iso ? iso[0] : s;
   }
@@ -134,8 +129,8 @@
     ready: { teams:false, games:false, groups:false, stadiums:false }
   };
 
-  // Vacía el store en memoria: al cerrar sesión, no debe quedar ni un dato
-  // cargado detrás de la pantalla de login (aunque esté visualmente oculta).
+  // Borrón y cuenta nueva: al cerrar sesión no queda ni un dato flotando
+  // en memoria detrás del login.
   function resetStore(){
     store.teams = []; store.teamById = {}; store.teamsSorted = [];
     store.stadiums = []; store.stadiumById = {};
@@ -185,22 +180,21 @@
       rows.forEach(function(r){ r.gd = r.gf - r.ga; });
       rows.sort(function(a,b){ return (b.pts-a.pts) || (b.gd-a.gd) || (b.gf-a.gf); });
       rows.forEach(function(r, i){ r.position = i + 1; });
-      // La API real envuelve la letra del grupo en "name" (p. ej. {"name":"H",
-      // "teams":[...]}), no en "group" — se acepta el fallback por si el mock
-      // u otra versión de la API usara la clave antigua.
+      // La API llama a la letra "name", no "group" — se acepta el fallback
+      // por si algún dataset viejo todavía usa la clave anterior.
       store.groupByLetter[g.name || g.group] = rows;
     });
     store.ready.groups = true;
   }
 
-  // Nombre/bandera de un equipo, con fallback a la etiqueta de eliminatoria
-  // (p. ej. "Winner Match 87") cuando el rival todavía no está definido.
+  // Nombre del equipo, o "Winner Match 87" si el rival todavía es un
+  // fantasma (fase eliminatoria sin definir).
   function teamName(id, fallbackLabel){
     var t = store.teamById[id];
     return t ? t.name : (fallbackLabel || 'Por definir');
   }
-  // Devuelve HTML seguro: <img> con la bandera real si existe URL, o un
-  // emoji genérico como respaldo (equipo aún no definido / bandera ausente).
+  // La URL de bandera pasa por esc() antes de entrar al <img> — nunca HTML
+  // crudo desde afuera. Sin bandera, un trofeo hace de comodín.
   function teamFlagHtml(id, label){
     var t = store.teamById[id];
     if (t && t.flag) {
@@ -209,15 +203,15 @@
     return icon('trophy', 'flag-ico flag-ico--fallback');
   }
 
-  // Tarjeta de partido "scoreboard" (ver docs/ARCHITECTURE.md), reutilizada
-  // por Sedes/Agenda/Timeline/Fanático. opts.statusColor suele ser groupColor(letra).
+  // La tarjeta "scoreboard" — se reutiliza en Sedes, Agenda, Timeline y
+  // Fanático, así que un cambio acá se siente en las cuatro vistas a la vez.
   function scorecardBar(opts) {
     var home = store.teamById[opts.homeId], away = store.teamById[opts.awayId];
     var homeColor = (home && home.color) || '#3a3a42';
     var awayColor = (away && away.color) || '#3a3a42';
     var homeName = teamName(opts.homeId, opts.homeLabel);
     var awayName = teamName(opts.awayId, opts.awayLabel);
-    // Los scores flanquean el emblema central (reemplaza al "–").
+    // El marcador flanquea el emblema en vez de un simple "–".
     var homeNum = opts.played ? '<span class="scorecard__num scorecard__num--home">'+esc(opts.homeScore)+'</span>' : '';
     var awayNum = opts.played ? '<span class="scorecard__num scorecard__num--away">'+esc(opts.awayScore)+'</span>' : '';
     var subtab = '';
@@ -247,9 +241,8 @@
     '</div>';
   }
 
-  // Récord Jugados/Ganados/Empatados/Perdidos de un equipo en fase de grupos,
-  // derivado de los partidos reales (la API de grupos solo da pts/gf/ga, no
-  // el desglose W/D/L).
+  // La API de grupos solo da pts/gf/ga — el desglose Ganados/Empatados/
+  // Perdidos hay que armarlo a mano recorriendo los partidos jugados.
   function teamRecord(teamId){
     var list = store.matchesByTeam[teamId] || [];
     var rec = { played: 0, w: 0, d: 0, l: 0 };
@@ -282,8 +275,8 @@
       pill.className='pill '+(state==='ok'?'pill--ok':state==='offline'?'pill--warn':'pill--retry');
       txt.textContent = state==='ok'?'En línea':state==='offline'?'Sin conexión':'Reintentando';
     }
-    // El modal de sesión expirada (401) se reemplazó por la pantalla de login
-    // completa (App.auth, ver js/view-login.js) — ver hooks.onAuthExpired en app.js.
+    // La pantalla de "sesión expirada" ya no vive acá — se mudó a la
+    // pantalla de login completa (App.auth en view-login.js).
   };
 
   /* ---------------------- Skeleton genérico ------------------------------- */
@@ -298,8 +291,7 @@
     teamName: teamName, teamFlagHtml: teamFlagHtml, teamRecord: teamRecord, groupColor: groupColor, scorecardBar: scorecardBar,
     fmtDate: fmtDate, fmtDateLong: fmtDateLong,
     ui: ui, skeletonCards: skeletonCards,
-    // Reexportado desde js/color.js: las vistas y app.js siguen llamando a
-    // App.common.* sin conocer la reubicación (fachada estable, bajo acoplamiento).
+    // Prestado de js/color.js, pero nadie afuera necesita saberlo.
     contrastText: App.color.contrastText,
     applyTeamTheme: App.color.applyTeamTheme,
     watchScheme: App.color.watchScheme

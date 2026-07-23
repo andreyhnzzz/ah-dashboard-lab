@@ -1,6 +1,4 @@
-/* ============================================================================
- * storage.js — Persistencia (localStorage + sessionStorage). Ver docs/ARCHITECTURE.md
- * ==========================================================================*/
+// La memoria del navegador: lo que sobrevive a un F5 vive acá.
 (function (App) {
   'use strict';
 
@@ -17,9 +15,8 @@
   function safeRemove(key) {
     try { window.localStorage.removeItem(key); } catch (e) { /* noop */ }
   }
-  // La sesión local (desbloqueo) vive en sessionStorage: sobrevive a un F5
-  // pero se cierra sola al cerrar la pestaña/navegador — a diferencia del
-  // resto de las claves, que son localStorage y persisten indefinidamente.
+  // Esta sí es sessionStorage a propósito: sobrevive un F5 pero se apaga
+  // sola al cerrar la pestaña. Todo lo demás abajo es para siempre.
   function safeSessionGet(key) {
     try { return window.sessionStorage.getItem(key); }
     catch (e) { return null; }
@@ -36,15 +33,14 @@
     setToken: function (token) { safeSet(S.token, token); },
     clearToken: function () { safeRemove(S.token); },
 
-    // Identidad de dispositivo ante la API real (worldcup26.ir) — ver api.js.
+    // El "quién soy" frente a la API real — de acá sale el JWT.
     getDeviceEmail: function () { return safeGet(S.deviceEmail); },
     getDevicePassword: function () { return safeGet(S.devicePassword); },
     setDeviceCredentials: function (email, password) {
       safeSet(S.deviceEmail, email); safeSet(S.devicePassword, password);
     },
 
-    // Login local (usuario + hash de contraseña) que protege el acceso a este
-    // dashboard en este navegador — independiente de la identidad de dispositivo.
+    // Un candado aparte, solo para este navegador — nada que ver con el JWT.
     getLocalUser: function () { return safeGet(S.localUser); },
     getLocalPassHash: function () { return safeGet(S.localPassHash); },
     setLocalCredentials: function (user, passHash) {
@@ -54,14 +50,14 @@
     setUnlocked: function () { safeSessionSet(S.unlocked, '1'); },
     clearUnlocked: function () { safeSessionRemove(S.unlocked); },
 
-    // team.id es siempre string ("1".."48"); no usar parseInt en el caller.
+    // El favorito que sobrevive al refresh (reto 2.4). Ojo: id siempre string.
     getFavorite: function () { return safeGet(S.favorite); },
     setFavorite: function (teamId) { safeSet(S.favorite, String(teamId)); },
 
     getLastView: function () { return safeGet(S.lastView); },
     setLastView: function (id) { safeSet(S.lastView, id); },
 
-    // Ajustes del panel de accesibilidad: persisten entre sesiones.
+    // Preferencias de accesibilidad — quedan puestas para la próxima vez.
     getColorblind: function () { return safeGet(S.colorblind) === '1'; },
     setColorblind: function (on) { if (on) { safeSet(S.colorblind, '1'); } else { safeRemove(S.colorblind); } },
 
@@ -83,7 +79,8 @@
     getPauseMotion: function () { return safeGet(S.pauseMotion) === '1'; },
     setPauseMotion: function (on) { if (on) { safeSet(S.pauseMotion, '1'); } else { safeRemove(S.pauseMotion); } },
 
-    // Caché offline por endpoint: última respuesta buena + timestamp.
+    // El modo offline en dos funciones: última respuesta buena + hora, por
+    // endpoint. Si todo lo demás falla, esto es lo que salva el dashboard.
     cacheResponse: function (endpoint, data) {
       var record = { savedAt: Date.now(), data: data };
       safeSet(S.cachePrefix + endpoint, JSON.stringify(record));
@@ -92,7 +89,7 @@
       var raw = safeGet(S.cachePrefix + endpoint);
       if (!raw) { return null; }
       try { return JSON.parse(raw); }
-      catch (e) { return null; } // JSON corrupto → como si no hubiera caché
+      catch (e) { return null; } // caché rota = caché inexistente, sin drama
     },
     hasCache: function (endpoint) {
       return safeGet(S.cachePrefix + endpoint) != null;

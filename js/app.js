@@ -1,10 +1,6 @@
-/* ============================================================================
- * app.js — Orquestador: router de vistas, carga de datos y eventos globales
- * ----------------------------------------------------------------------------
- * Reúne las cinco vistas bajo un mismo shell. Carga los cuatro recursos
- * (teams, groups, games, stadiums) una sola vez con la capa de resiliencia y
- * los comparte vía App.common.store. La navegación no vuelve a pedir datos.
- * ==========================================================================*/
+// El director de orquesta: reparte las seis vistas en un mismo shell, pide
+// los datos una vez y los reparte por App.common.store. Cambiar de vista
+// nunca vuelve a golpear la red.
 (function (App) {
   'use strict';
 
@@ -29,9 +25,25 @@
     }).join('');
   }
 
+  // Intercambia el contenido de la vista: estado del nav, topbar, render y foco.
+  // Marca "volvé acá" (lastView) para restaurar la vista tras un F5 (reto 2.4).
+  function swapView(id, view, el){
+    document.querySelectorAll('.nav__item').forEach(function(b){
+      var on = b.getAttribute('data-view')===id;
+      b.classList.toggle('is-active', on);
+      if(on){ b.setAttribute('aria-current','page'); } else { b.removeAttribute('aria-current'); }
+    });
+    K.$('view-title').textContent = view.title;
+    K.$('view-desc').textContent = view.desc;
+    el.setAttribute('aria-busy','false');
+    view.render(el);
+    el.focus({ preventScroll: true });
+    App.storage.setLastView(id);
+  }
+
   function go(id){
     if(!App.views[id]){ return; }
-    // Limpieza de la vista saliente (p. ej. desconectar IntersectionObserver).
+    // Se apaga la luz de la vista que se va (p. ej. desconecta el observer).
     var prev = state.currentId && App.views[state.currentId];
     if(prev && typeof prev.destroy==='function'){ prev.destroy(); }
 
@@ -41,51 +53,25 @@
     var el = K.$('view');
     state.currentEl = el;
 
-    function swap(){
-      // Estado visual del nav.
-      document.querySelectorAll('.nav__item').forEach(function(b){
-        var on = b.getAttribute('data-view')===id;
-        b.classList.toggle('is-active', on);
-        if(on){ b.setAttribute('aria-current','page'); } else { b.removeAttribute('aria-current'); }
-      });
-
-      // Topbar.
-      K.$('view-title').textContent = view.title;
-      K.$('view-desc').textContent = view.desc;
-
-      el.setAttribute('aria-busy','false');
-      view.render(el);
-      el.focus({ preventScroll: true });
-
-      // Recuerda la vista activa: si el usuario hace un refresco completo del
-      // navegador (F5) estando en el Dashboard del Fanático, el reto de
-      // resiliencia 2.4 exige volver a mostrarlo (con datos cacheados si hace
-      // falta) en vez de perder el contexto en la pantalla de Resumen.
-      App.storage.setLastView(id);
-    }
-
-    // Transición de "explosión de colores" horizontal entre vistas (no aplica
-    // en la primera carga, ni si el usuario prefiere menos movimiento por el
-    // SO o por el panel de accesibilidad → "pausar animaciones").
-    if(isFirst || motionReduced()){ swap(); return; }
+    // El efecto "explosión de colores" se salta en la primera carga y si
+    // alguien pidió menos movimiento (SO o panel a11y).
+    if(isFirst || motionReduced()){ swapView(id, view, el); return; }
     playWipe(function(){
-      swap();
+      swapView(id, view, el);
       el.classList.remove('view--entering');
       void el.offsetWidth;          // reinicia la animación de entrada
       el.classList.add('view--entering');
     });
   }
 
-  // ¿Debe omitirse el movimiento? Por preferencia del SO o por el toggle
-  // "pausar animaciones" del panel de accesibilidad (clase en <body>).
+  // ¿Frenamos la animación? SO o el toggle "pausar animaciones" mandan.
   function motionReduced(){
     var os = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     return !!os || document.body.classList.contains('a11y-pause-motion');
   }
 
-  // Lee una duración declarada como variable CSS ('0.6s' / '600ms') y la
-  // devuelve en milisegundos. Mantiene el timing de CSS y JS en una sola fuente
-  // (css/tokens.css → --wipe-*): cambiar la duración ahí basta para todo.
+  // Lee la duración desde la variable CSS: una sola fuente de verdad para
+  // el timing (tocás css/tokens.css y el JS se entera solo).
   function cssDurationMs(varName, fallback){
     var raw = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
     var n = parseFloat(raw);
@@ -93,9 +79,8 @@
     return raw.indexOf('ms') > -1 ? n : n * 1000;
   }
 
-  // Reproduce el overlay de colores oficiales: estalla desde el centro para
-  // cubrir (llama a onCovered en el punto de cobertura total) e implosiona de
-  // vuelta para revelar la vista nueva. Tolerante a llamadas rápidas seguidas.
+  // Estalla desde el centro, tapa todo, cambia la vista por debajo, e
+  // implosiona para revelarla. Si lo llamás dos veces seguido, no se pisa.
   var wipeBusy = false;
   function playWipe(onCovered){
     var wipe = K.$('wc-wipe');
@@ -136,9 +121,9 @@
     };
     App.api.hooks.onRetryDone = function(){ K.ui.hideRetry(); };
     App.api.hooks.onAuthExpired = function(){
-      // 401: cualquier error de sesión cierra AMBAS capas (local + API) y
-      // pide reautenticación completa, sin location.reload() ni perder la
-      // vista actual ni el equipo favorito.
+      // El 401 en persona: se cierran las dos capas de sesión y se pide
+      // volver a entrar. Cero location.reload(), cero perder la vista o
+      // el equipo favorito — eso sería hacer trampa con la experiencia.
       console.warn('[resiliencia] 401 → sesión cerrada, pidiendo reautenticación completa');
       K.ui.setConnection('offline');
       App.storage.clearUnlocked();
@@ -149,28 +134,42 @@
   }
 
   /* ---------------------- Carga de datos ---------------------------------- */
-  // Devuelve {stale, savedAt}; lanza AuthError o HttpError (sin caché).
+  // Un endpoint, un intento. Si no hay caché de respaldo, el error sube tal
+  // cual (AuthError o HttpError) para que loadAll() decida qué hacer.
   async function loadOne(endpoint, setter){
     var r = await App.api.getData(endpoint);
     setter(r.data);
     return { stale: !!r.stale, savedAt: r.savedAt };
   }
 
+  // Los cuatro recursos del torneo; se cargan una sola vez por sesión.
+  var RESOURCES = [
+    { ep: C.ENDPOINTS.teams,    set: K.setTeams,    name: 'equipos' },
+    { ep: C.ENDPOINTS.stadiums, set: K.setStadiums, name: 'sedes' },
+    { ep: C.ENDPOINTS.groups,   set: K.setGroups,   name: 'grupos' },
+    { ep: C.ENDPOINTS.games,    set: K.setGames,    name: 'partidos' }
+  ];
+
+  // El semáforo global de conexión: en línea, offline (con caché) o apagón total.
+  function applyLoadState(anyStale, staleAt, hardFails){
+    if(anyStale){
+      console.warn('[resiliencia] sirviendo datos cacheados (offline)');
+      K.ui.showStale(staleAt); K.ui.setConnection('offline');
+    } else {
+      K.ui.hideStale(); K.ui.setConnection('ok');
+    }
+    if(hardFails === RESOURCES.length){
+      K.ui.showError('No hay conexión con la API ni datos guardados.');
+    }
+  }
+
   async function loadAll(){
     var seq = ++state.loadSeq;
     K.ui.hideError();
-
-    var resources = [
-      { ep: C.ENDPOINTS.teams,    set: K.setTeams,    name: 'equipos' },
-      { ep: C.ENDPOINTS.stadiums, set: K.setStadiums, name: 'sedes' },
-      { ep: C.ENDPOINTS.groups,   set: K.setGroups,   name: 'grupos' },
-      { ep: C.ENDPOINTS.games,    set: K.setGames,    name: 'partidos' }
-    ];
-
     var anyStale=false, staleAt=null, hardFails=0;
 
-    for(var i=0;i<resources.length;i++){
-      var res = resources[i];
+    for(var i=0;i<RESOURCES.length;i++){
+      var res = RESOURCES[i];
       try {
         var out = await loadOne(res.ep, res.set);
         if(out.stale){ anyStale=true; staleAt = staleAt || out.savedAt; }
@@ -182,25 +181,13 @@
       if(seq !== state.loadSeq){ return; } // recarga más reciente en curso
     }
 
-    // Selector de favorito (se llena en cuanto hay equipos).
-    populateFavorites();
-
-    // Estado global de conexión / datos no actualizados.
-    if(anyStale){
-      console.warn('[resiliencia] sirviendo datos cacheados (offline)');
-      K.ui.showStale(staleAt); K.ui.setConnection('offline');
-    } else {
-      K.ui.hideStale(); K.ui.setConnection('ok');
-    }
-    if(hardFails === resources.length){
-      K.ui.showError('No hay conexión con la API ni datos guardados.');
-    }
-
+    populateFavorites(); // se llena apenas hay equipos con quién llenarlo
+    applyLoadState(anyStale, staleAt, hardFails);
     renderCurrent(true);
   }
 
-  // Render de la vista actual; en recargas usa refresh() si la vista lo ofrece
-  // (p. ej. la matriz actualiza solo las celdas afectadas, sin reconstruir).
+  // ¿Recarga? Si la vista sabe hacer refresh() quirúrgico (la matriz solo
+  // toca las celdas que cambiaron), se usa eso en vez de reconstruir todo.
   function renderCurrent(afterReload){
     if(!state.currentId){ return; }
     var view = App.views[state.currentId];
@@ -219,8 +206,8 @@
     if(!K.store.teamsSorted.length || sel.options.length>1){ return; }
     K.store.teamsSorted.forEach(function(t){
       var o=document.createElement('option');
-      // <option> no admite HTML/<img>, así que el código FIFA reemplaza al
-      // emoji/URL de bandera (t.flag ahora es una URL real, no renderizable aquí).
+      // Un <option> no pinta banderas ni emojis, así que el código FIFA
+      // hace de reemplazo texto-plano.
       o.value=t.id; o.textContent=(t.code?t.code+' · ':'')+t.name+'  (Grupo '+t.group+')';
       if(t.id===state.favoriteId){ o.selected=true; }
       sel.appendChild(o);
@@ -236,7 +223,7 @@
     } else {
       K.applyTeamTheme(null);
     }
-    // Si estamos en la vista del fanático, refléjalo de inmediato.
+    // Si ya estás mirando el Dashboard del Fanático, que se note al toque.
     if(state.currentId==='fanatico'){ App.views.fanatico.render(K.$('view')); }
   }
 
@@ -255,9 +242,8 @@
     K.$('a11y-fs-value').textContent = pct + '%';
   }
 
-  // [id del checkbox, clase aplicada a <body>, getter, setter] — un solo
-  // patrón para todos los ajustes booleanos del panel (evita repetir el
-  // wiring de cada toggle y permite recorrerlos también en "Restablecer").
+  // [checkbox, clase de <body>, getter, setter] — una fila de tabla por
+  // toggle, así "Restablecer" los recorre a todos sin repetir código.
   function a11yToggles(){
     return [
       ['toggle-colorblind', 'colorblind',       App.storage.getColorblind, App.storage.setColorblind],
@@ -269,89 +255,88 @@
     ];
   }
 
-  function wireA11yPanel(){
-    K.$('a11y-fab').addEventListener('click', function(){
-      setA11yPanelOpen(K.$('a11y-panel').hidden);
-    });
+  // Abrir/cerrar el panel: botón flotante, botón cerrar, Escape y clic afuera.
+  function wireA11yDismiss(){
+    K.$('a11y-fab').addEventListener('click', function(){ setA11yPanelOpen(K.$('a11y-panel').hidden); });
     K.$('a11y-close').addEventListener('click', function(){ setA11yPanelOpen(false); });
     document.addEventListener('keydown', function(e){
       if(e.key==='Escape' && !K.$('a11y-panel').hidden){ setA11yPanelOpen(false); K.$('a11y-fab').focus(); }
     });
     document.addEventListener('click', function(e){
-      if(K.$('a11y-panel').hidden){ return; }
-      if(e.target.closest('.a11y-widget')){ return; }
+      if(K.$('a11y-panel').hidden || e.target.closest('.a11y-widget')){ return; }
       setA11yPanelOpen(false);
     });
+  }
 
-    // Tamaño de texto: escala el font-size raíz (rem) en pasos de 10%,
-    // 80%–160%. No sustituye el zoom del navegador: es un ajuste propio de
-    // la app que no rompe el layout (todo el sistema tipográfico es rem).
-    var fontScale = App.storage.getFontScale();
-    applyFontScale(fontScale);
-    K.$('a11y-fs-dec').addEventListener('click', function(){
-      fontScale = Math.max(FONT_SCALE_MIN, fontScale - FONT_SCALE_STEP);
-      applyFontScale(fontScale); App.storage.setFontScale(fontScale);
-    });
-    K.$('a11y-fs-inc').addEventListener('click', function(){
-      fontScale = Math.min(FONT_SCALE_MAX, fontScale + FONT_SCALE_STEP);
-      applyFontScale(fontScale); App.storage.setFontScale(fontScale);
-    });
+  // Suma/resta al tamaño de texto, acotado y persistido (el estado vive en storage).
+  function stepFontScale(delta){
+    var v = Math.max(FONT_SCALE_MIN, Math.min(FONT_SCALE_MAX, App.storage.getFontScale() + delta));
+    applyFontScale(v); App.storage.setFontScale(v);
+  }
 
-    // Toggles booleanos (alto contraste, fuente de lectura fácil, enlaces,
-    // cursor grande, pausar animaciones, modo daltónico): restaura el estado
-    // guardado y engancha el cambio a clase de <body> + persistencia.
-    var toggles = a11yToggles();
+  // Zoom de texto casero: pasos de 10% sobre el font-size raíz (todo es rem).
+  function wireFontScale(){
+    applyFontScale(App.storage.getFontScale());
+    K.$('a11y-fs-dec').addEventListener('click', function(){ stepFontScale(-FONT_SCALE_STEP); });
+    K.$('a11y-fs-inc').addEventListener('click', function(){ stepFontScale(FONT_SCALE_STEP); });
+  }
+
+  // Restaura lo guardado y engancha cada toggle a su clase de <body>.
+  function wireA11yToggles(toggles){
     toggles.forEach(function(t){
-      var id=t[0], cls=t[1], get=t[2], set=t[3];
-      var input = K.$(id), on = get();
+      var input = K.$(t[0]), on = t[2]();
       input.checked = on;
-      document.body.classList.toggle(cls, on);
+      document.body.classList.toggle(t[1], on);
       input.addEventListener('change', function(e){
-        document.body.classList.toggle(cls, e.target.checked);
-        set(e.target.checked);
+        document.body.classList.toggle(t[1], e.target.checked);
+        t[3](e.target.checked);
       });
     });
+  }
 
+  // "Restablecer": apaga cada toggle y vuelve el texto a 100%.
+  function wireA11yReset(toggles){
     K.$('a11y-reset').addEventListener('click', function(){
       toggles.forEach(function(t){
         K.$(t[0]).checked = false;
         document.body.classList.remove(t[1]);
         t[3](false);
       });
-      fontScale = 100;
-      applyFontScale(fontScale);
-      App.storage.setFontScale(fontScale);
+      applyFontScale(100); App.storage.setFontScale(100);
     });
   }
 
+  function wireA11yPanel(){
+    wireA11yDismiss();
+    wireFontScale();
+    var toggles = a11yToggles();
+    wireA11yToggles(toggles);
+    wireA11yReset(toggles);
+  }
+
   /* ---------------------- Eventos ----------------------------------------- */
-  function wireEvents(){
-    // Navegación (delegación sobre la lista).
-    K.$('nav').addEventListener('click', function(e){
-      var btn = e.target.closest('.nav__item'); if(!btn){ return; }
-      go(btn.getAttribute('data-view'));
-    });
-    // Accesos directos desde el Resumen (data-goto).
-    K.$('view').addEventListener('click', function(e){
-      var card = e.target.closest('[data-goto]'); if(!card){ return; }
-      go(card.getAttribute('data-goto'));
-    });
-    // Favorito global.
-    K.$('fav-select').addEventListener('change', function(e){
-      // Los ids de equipo son strings (adaptTeam los normaliza con String()),
-      // así que NO se debe parseInt() aquí: rompería el lookup en teamById.
-      setFavorite(e.target.value || null);
-    });
-    // Reintento / recarga.
-    K.$('btn-retry').addEventListener('click', function(){ K.ui.hideError(); loadAll(); });
-    K.$('btn-reload').addEventListener('click', function(){ loadAll(); });
-    // La reautenticación tras un 401 vive en la pantalla de login
-    // (js/view-login.js → App.auth), disparada desde hooks.onAuthExpired.
-    // Modo demo.
+  // Barra de "Herramientas para la defensa": modo mock + simulador de errores.
+  function wireDemoTools(){
     K.$('toggle-mock').addEventListener('change', function(e){ C.USE_MOCK=e.target.checked; console.info('[config] USE_MOCK =',C.USE_MOCK); loadAll(); });
     K.$('sim-select').addEventListener('change', function(e){ C.SIMULATE=e.target.value; console.info('[config] SIMULATE =',C.SIMULATE||'(normal)','target=',C.SIMULATE_TARGET); });
     K.$('sim-target').addEventListener('change', function(e){ C.SIMULATE_TARGET=e.target.value; console.info('[config] SIMULATE_TARGET =',C.SIMULATE_TARGET); });
+  }
+
+  function wireEvents(){
+    // Navegación y accesos directos del Resumen (delegación de eventos).
+    K.$('nav').addEventListener('click', function(e){
+      var btn = e.target.closest('.nav__item'); if(btn){ go(btn.getAttribute('data-view')); }
+    });
+    K.$('view').addEventListener('click', function(e){
+      var card = e.target.closest('[data-goto]'); if(card){ go(card.getAttribute('data-goto')); }
+    });
+    // Favorito global. Sin parseInt: los ids de equipo son strings.
+    K.$('fav-select').addEventListener('change', function(e){ setFavorite(e.target.value || null); });
+    // Reintento / recarga (el re-login tras 401 lo maneja hooks.onAuthExpired).
+    K.$('btn-retry').addEventListener('click', function(){ K.ui.hideError(); loadAll(); });
+    K.$('btn-reload').addEventListener('click', function(){ loadAll(); });
     K.$('btn-logout').addEventListener('click', logout);
+    wireDemoTools();
     wireA11yPanel();
   }
 
@@ -363,8 +348,8 @@
     }
   }
 
-  // Capa de dispositivo (API real): sin token, hay que loguear primero
-  // ("new" o "returning") antes de pedir un solo /get/*.
+  // Sin token no se pide ni un solo /get/* — primero hay que loguear
+  // ("new" o "returning") contra la API real.
   async function ensureDeviceAuth(){
     if(App.storage.getToken()){
       await loadAllAndApplyTheme();
@@ -374,8 +359,8 @@
     }
   }
 
-  // Cierra ambas capas de sesión (local + token de API) y vacía los datos en
-  // memoria: no debe quedar nada visible ni cargado tras cerrar sesión.
+  // Cierra las dos cerraduras y tira la llave: nada debe quedar visible ni
+  // cargado en memoria después de un logout.
   function logout(){
     App.storage.clearToken();
     App.storage.clearUnlocked();
@@ -390,13 +375,13 @@
     wireEvents();
     App.auth.init();
     state.favoriteId = App.storage.getFavorite();
-    // Pinta el shell (vacío) detrás del login para que nunca haya pantalla en
-    // blanco, y restaura la vista de antes del refresco (reto 2.4).
+    // El shell se pinta ANTES del login: nunca, nunca una pantalla en
+    // blanco. Y si veníamos del Dashboard del Fanático, se vuelve ahí.
     var restored = App.storage.getLastView();
     go(restored && App.views[restored] ? restored : 'inicio');
 
-    // Sin desbloqueo local no se ve un solo dato: primero la capa de acceso
-    // (usuario/contraseña de este navegador), luego la de dispositivo (API).
+    // Doble puerta: primero el candado local (este navegador), recién
+    // después la identidad de dispositivo contra la API real.
     if(App.storage.isUnlocked()){
       await ensureDeviceAuth();
     } else {

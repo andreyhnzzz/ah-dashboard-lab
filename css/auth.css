@@ -1,6 +1,5 @@
 /* ============================================================================
  * auth.css — Pantalla de acceso: login local + identidad de dispositivo.
- * Estados en docs/ARCHITECTURE.md.
  * ==========================================================================*/
 
 body.auth-open { overflow: hidden; }
